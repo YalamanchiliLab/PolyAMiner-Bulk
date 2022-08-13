@@ -1,0 +1,17 @@
+*.pyc
+cache*
+dna_cache*
+examples/runs
+examples/ft
+examples/output*
+examples/ft_new
+examples/results
+examples/data_old
+examples/data
+examples/result
+examples/models
+src/transformers/data/__pycache__
+src/transformers/data/metrics/__pycache__
+src/transformers/data/processors/__pycache__
+src/transformers/__pycache__
+src/transformers.egg-info
