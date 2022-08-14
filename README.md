@@ -17,7 +17,7 @@ conda create -n cpasbert python=3.6
 conda activate cpasbert
 ```
 
-### 1.2:  Install the necessary package dependencies
+### 1.2: Install the necessary package dependencies
 
 ```
 conda install pytorch torchvision cudatoolkit=10.0 -c pytorch
@@ -31,6 +31,8 @@ python3 -m pip install -r requirements.txt
 
 ## Step 2: Download trained ML-models + ML-dependencies and extract them into the /lib folder
 
-## Step 3: Download necessary reference files (fasta, gtf)
+## Step 3: Download necessary reference files
+
+### 3.1: Download fasta and gtf reference files from Ensemble: http://uswest.ensembl.org/info/data/ftp/index.html/
 
 ## Step 4 (Optional): Download RBM17 Test Data and Run Test Script
