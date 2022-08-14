@@ -33,7 +33,7 @@ python3 -m pip install -r requirements.txt
 
 ### 2.1: Download "6-new-12w-0" from https://drive.google.com/file/d/14bH1cxNX16bldIFIhkM33WFaNXp0XNPS/view?usp=sharing and extract it into the /lib folder
 
-### 2.2: Download "CPASBERT_TrainedModels" from and extract it into the /lib folder
+### 2.2: Download "CPASBERT_TrainedModels" from https://drive.google.com/file/d/1iMsBCbVSLPLjaHGHCiLMsxvqkzQgpk2Y/view?usp=sharing and extract it into the /lib folder
 
 ## Step 3: Download necessary reference files
 
