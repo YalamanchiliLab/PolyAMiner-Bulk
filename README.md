@@ -33,6 +33,6 @@ python3 -m pip install -r requirements.txt
 
 ## Step 3: Download necessary reference files
 
-### 3.1: Download fasta and gtf reference files from Ensemble: http://uswest.ensembl.org/info/data/ftp/index.html/
+### 3.1: Download organism-specific fasta and gtf reference files from Ensemble: http://uswest.ensembl.org/info/data/ftp/index.html/
 
 ## Step 4 (Optional): Download RBM17 Test Data and Run Test Script
