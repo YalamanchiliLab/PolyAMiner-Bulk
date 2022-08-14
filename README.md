@@ -1,6 +1,6 @@
 # PolyAMiner-Bulk
 
-##Step 1: Install necessary dependencies
+## Step 1: Install necessary dependencies
 
 ##Step 2: Setup the compute environment
 
