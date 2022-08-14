@@ -29,6 +29,8 @@ cd examples
 python3 -m pip install -r requirements.txt
 ```
 
-## Step 3: Download trained ML-models + ML-dependencies and extract them into the /lib folder
+## Step 2: Download trained ML-models + ML-dependencies and extract them into the /lib folder
+
+## Step 3: Download necessary reference files (fasta, gtf)
 
 ## Step 4 (Optional): Download RBM17 Test Data and Run Test Script
