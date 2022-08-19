@@ -1,5 +1,13 @@
 # PolyAMiner-Bulk
 
+This repository includes the PolyAMiner-Bulk computational tool from 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'. Please cite our paper if you have used any of our machine learning models or code snippets. This repository is actively under development, so please kindly report any issues or feature requests.
+
+In this package, we provide the following resources: 
+
+(1) Source code of PolyAMiner-Bulk
+(2) Test scripts delineating key usage scenarios
+(3) Fine-trained CPAS-BERT models for both human and mouse model organisms.
+
 ## Citation
 
 If you have used PolyAMiner-Bulk in your research, please kindly cite the following publication:
@@ -22,10 +30,8 @@ conda activate cpasbert
 ```
 conda install pytorch torchvision cudatoolkit=10.0 -c pytorch
 
-git clone https://github.com/jerryji1993/DNABERT
-cd DNABERT
-python3 -m pip install --editable .
-cd examples
+git clone https://github.com/venkatajonnakuti/PolyAMiner-Bulk
+cd PolyAMiner-Bulk
 python3 -m pip install -r requirements.txt
 ```
 
@@ -39,4 +45,8 @@ python3 -m pip install -r requirements.txt
 
 ### 3.1: Download organism-specific fasta and gtf reference files from Ensemble: http://uswest.ensembl.org/info/data/ftp/index.html/
 
-## Step 4 (Optional): Download RBM17 Test Data and Run Test Script
+## Step 4: Run PolyAMiner-Bulk
+
+## Step 5 (Optional): Download RBM17 Test Data and Run Test Script
+
+## Q&A
