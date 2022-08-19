@@ -1,4 +1,4 @@
-# PolyAMiner-Bulk TEST
+# PolyAMiner-Bulk
 
 This repository includes the PolyAMiner-Bulk computational tool from 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'. Please cite our paper if you have used our computational tool, any of our machine learning models, or code snippets. Additionally, this repository is actively under development, so please kindly report any issues or feature requests.
 
