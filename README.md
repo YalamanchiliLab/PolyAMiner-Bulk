@@ -37,15 +37,13 @@ cd PolyAMiner-Bulk
 python3 -m pip install -r requirements.txt
 ```
 
-## Step 2: Download trained ML-models + ML-dependencies 
+## Step 2: Download trained ML-models + ML-dependencies + necessary reference files
 
 ### 2.1: Download "6-new-12w-0" from https://bcm.box.com/s/1lo85ig6eop2a5e12d52ytd6q98fg4xa and extract it into the /lib folder
 
 ### 2.2: Download "CPASBERT_TrainedModels" from https://drive.google.com/file/d/1iMsBCbVSLPLjaHGHCiLMsxvqkzQgpk2Y/view?usp=sharing and extract it into the /lib folder
 
-## Step 3: Download necessary reference files
-
-### 3.1: Download organism-specific fasta and gtf reference files from Ensemble: http://uswest.ensembl.org/info/data/ftp/index.html/
+### 2.3: Download organism-specific fasta and gtf reference files from our shared folder:  OR directly from Ensemble: http://uswest.ensembl.org/info/data/ftp/index.html/
 
 ## Step 4: Run PolyAMiner-Bulk
 
