@@ -23,10 +23,13 @@ class ExtractPolyAsites4Bulk:
 			self.modelPath = libPath + "/mm10_checkpoint-8000"
 			self.POLYASITE = libPath + "/PolyASite_mouse_mm10.bed"
 			self.POLYADB = libPath + "/PolyADB_mouse_mm10.bed"
+			self.APRIORI = libPath + "/APrioriAnnotations_PolyADB_PolyASite_mouse_mm10.bed"
+
 		elif modelOrganism == "human":
 			self.modelPath = libPath + "/hg38_checkpoint-16000"
 			self.POLYASITE = libPath + "/PolyASite_human_hg38.bed"
 			self.POLYADB = libPath + "/PolyADB_human_hg38.bed"
+			self.APRIORI = libPath + "/APrioriAnnotations_PolyADB_PolyASite_human_hg38.bed"
 
 		self.FASTA = fasta
 		self.GTF = gtf
@@ -63,6 +66,8 @@ class ExtractPolyAsites4Bulk:
 		return None
 
 	def _addGeneNames(self):
+		self._makeGeneBed()
+
 		TEMPFILE = self.outDir + self.outPrefix + "tempFile.bed"
 		cmd = 'bedtools closest -nonamecheck -a ' + self.FINAL_SOFTCLIPPED_BED_FILE + ' -b ' + self.GENE_BED + ' -s -id -D a -t first -k 1 > ' + TEMPFILE
 		os.system(cmd)
@@ -159,9 +164,7 @@ class ExtractPolyAsites4Bulk:
 
 		return(df_cds,df_utr5,df_utr3)
 
-
 	def _mapAPA2Features(self):
-
 		APAfile = self.FINAL_SOFTCLIPPED_BED_FILE
 
 		PA_df = pd.read_csv(APAfile,sep="\t",header=None,index_col=None)
@@ -200,7 +203,6 @@ class ExtractPolyAsites4Bulk:
 		PA_df.to_csv(APAfile, sep='\t', index=False, header=False)
 
 	def _markFeatures(self):
-
 		genes_bed = pb.BedTool(self.GENE_BED)
 
 		df = gp.read_gtf(self.GTF)
@@ -363,12 +365,12 @@ class ExtractPolyAsites4Bulk:
 		df_final = df_final[df_final.Chromosome.isin(ChromosomeNames)]
 		df_final.to_csv(CAPPED_BED_FILE, sep='\t', index=False, header=None)
 
-		SLOPPED_CAPPED_BED_FILE = self.outDir + self.outPrefix + os.path.basename(CAPPED_BED_FILE).replace(".capped.bed", ".slopped.capped.bed")
+		SLOPPED_CAPPED_BED_FILE = self.outDir + os.path.basename(CAPPED_BED_FILE).replace(".capped.bed", ".slopped.capped.bed")
 		cmd = "bedtools slop -i " + CAPPED_BED_FILE + " -b " + self.slopDistanceParameter + " -g " + CHROM_SIZES + " > " + SLOPPED_CAPPED_BED_FILE
 		print(cmd)
 		os.system(cmd)
 
-		SORTED_SLOPPED_CAPPED_BED_FILE = self.outDir + self.outPrefix + os.path.basename(CAPPED_BED_FILE).replace(".capped.bed", ".sorted.slopped.capped.bed")
+		SORTED_SLOPPED_CAPPED_BED_FILE = self.outDir + os.path.basename(CAPPED_BED_FILE).replace(".capped.bed", ".sorted.slopped.capped.bed")
 		cmd = "bedtools sort -i " + SLOPPED_CAPPED_BED_FILE + " > " + SORTED_SLOPPED_CAPPED_BED_FILE
 		print(cmd)
 		os.system(cmd)
@@ -376,18 +378,23 @@ class ExtractPolyAsites4Bulk:
 	def _generateFinalSoftClippedBEDFile (self):
 		SORTED_SLOPPED_CAPPED_BED_FILELIST = glob.glob(self.outDir + "*.sorted.slopped.capped.bed")
 		SORTED_SLOPPED_CAPPED_BED_FILELIST_STRING = ' '.join(SORTED_SLOPPED_CAPPED_BED_FILELIST)
-		
+
 		CONCATENATED_SORTED_SLOPPED_CAPPED_BED_FILE = self.outDir + self.outPrefix + ".concatenated.sorted.slopped.capped.bed"
 		cmd = "cat " + SORTED_SLOPPED_CAPPED_BED_FILELIST_STRING + " > " + CONCATENATED_SORTED_SLOPPED_CAPPED_BED_FILE
 		print(cmd)
 		os.system(cmd)
 
-		CLUSTERED_CONCATENATED_SORTED_SLOPPED_CAPPED_BED_FILE = self.outDir + self.outPrefix + ".clustered.concatenated.sorted.slopped.capped.bed"
-		cmd = "bedtools cluster -s -d 24 -i " + CONCATENATED_SORTED_SLOPPED_CAPPED_BED_FILE + " > " + CLUSTERED_CONCATENATED_SORTED_SLOPPED_CAPPED_BED_FILE
+		self._clusterAndSortBED(inputBED = CONCATENATED_SORTED_SLOPPED_CAPPED_BED_FILE)
+		
+	def _clusterAndSortBED(self, inputBED):
+		#Look at _generateFinalSoftClippedBEDFile and filterPolyADBandPolyASite functions; take the common code and refactor into this function
+		
+		CLUSTERED_BED_FILE = self.outDir + self.outPrefix + ".clustered.bed"
+		cmd = "bedtools cluster -s -d 24 -i " + inputBED + " > " + CLUSTERED_BED_FILE
 		print(cmd)
 		os.system(cmd)
 
-		df = pd.read_csv(CLUSTERED_CONCATENATED_SORTED_SLOPPED_CAPPED_BED_FILE, sep = "\t", header = None, names = ["Chr", "Start", "End", "Feature", "Feature2", "Strand", "Cluster"])
+		df = pd.read_csv(CLUSTERED_BED_FILE, sep = "\t", header = None, names = ["Chr", "Start", "End", "Feature", "Feature2", "Strand", "Cluster"])
 		Filtered_DF_posStrand = df.query('Strand == "+"').reset_index(drop=True)
 		Filtered_DF_negStrand = df.query('Strand == "-"').reset_index(drop=True)
 
@@ -408,6 +415,15 @@ class ExtractPolyAsites4Bulk:
 		self._addGeneNames()
 		self._markFeatures()
 
+	def _loadFilteredPolyADBandPolyASite(self):
+		#Generate final Filtered BED File
+		CONCATENATED_APRIORI_SOFTCLIPPED_BED_FILE = self.outDir + self.outPrefix + ".concatenated.apriori.softclipped.bed"
+		cmd = "cat " + self.APRIORI + " " + self.FINAL_SOFTCLIPPED_BED_FILE + " > " + CONCATENATED_APRIORI_SOFTCLIPPED_BED_FILE
+		print(cmd)
+		os.system(cmd)
+
+		self._clusterAndSortBED(inputBED = CONCATENATED_APRIORI_SOFTCLIPPED_BED_FILE)
+
 	def _generateSAF(self):
 		df = pd.read_csv(self.FINAL_SOFTCLIPPED_BED_FILE, sep='\t', index_col=None, names=['Chr', 'Start', 'End', 'Gene', 'APA', 'Strand'])
 
@@ -421,9 +437,6 @@ class ExtractPolyAsites4Bulk:
 
 	def extractPolyA(self):
 		self._truePolyA()
-		self._makeGeneBed()
-		if (self.apriori_annotations):
-			self._mergePolyADBandPolyASite()
 		self._generateFinalSoftClippedBEDFile()
 
 		CPASBERT1 = CPASBERT(outDir = self.outDir,
@@ -431,36 +444,60 @@ class ExtractPolyAsites4Bulk:
 		modelPath = self.modelPath,
 		fasta = self.FASTA,
 		gtf = self.GTF,
-		predictions = "/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/PolyAMiner_Results/SubtypeCvsA_3UTROnly_Run1/pred_results.npy",
+		predictions = "",
 		denovoapasiteBED = self.FINAL_SOFTCLIPPED_BED_FILE,
 		geneBED = "",
 		polyADB = self.POLYADB,
 		polyASite = self.POLYASITE
 		)
+		
 		CPASBERT1.filter_CPAS_Sites()
+
+		if (self.apriori_annotations):
+			self._loadFilteredPolyADBandPolyASite()
 
 		self._generateSAF()
 
 		return True
 
+	def filterPolyADBandPolyASite(self):
+		self._mergePolyADBandPolyASite()
+
+		SORTED_SLOPPED_CAPPED_APRIORIANNOTATIONS_BED_FILE = self.outDir + self.outPrefix + "APrioriAnnotations.sorted.slopped.capped.bed"
+		self._clusterAndSortBED(inputBED = SORTED_SLOPPED_CAPPED_APRIORIANNOTATIONS_BED_FILE)
+
+		CPASBERT1 = CPASBERT(outDir = self.outDir,
+		outPrefix = self.outPrefix, 
+		modelPath = self.modelPath,
+		fasta = self.FASTA,
+		gtf = self.GTF,
+		predictions = "",
+		denovoapasiteBED = self.FINAL_SOFTCLIPPED_BED_FILE,
+		geneBED = "",
+		polyADB = self.POLYADB,
+		polyASite = self.POLYASITE
+		)
+
+		CPASBERT1.filter_CPAS_Sites()
+
+	def test(self):
+		print(self.APRIORI)
+
+
 def main():
-	
-	ExtractPolyASites4Bulk1 = ExtractPolyAsites4Bulk(outDir = "/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/PolyAMiner_Results/SubtypeCvsA_3UTROnly_Run2",
-		outPrefix = "3UTR_Only", 
-		fasta = "/mnt/belinda_local/venkata/data/Index_Files/Human/GenomeFasta_GTF/GRCh38.primary_assembly.genome.fa",
-		gtf = "/mnt/belinda_local/venkata/data/Index_Files/Human/GenomeFasta_GTF/gencode.v33.primary_assembly.annotation.gtf",
+	ExtractPolyASites4Bulk1 = ExtractPolyAsites4Bulk(outDir = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Mouse_APriori",
+		outPrefix = "mouse_", 
+		fasta = "/mnt/belinda_local/venkata/data/Index_Files/Mouse/GRCm38.primary_assembly.genome.fa",
+		gtf = "/mnt/belinda_local/venkata/data/Index_Files/Mouse/gencode.vM23.primary_assembly.annotation.gtf",
 		con1BAMFiles = "/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-VZKP229D/TL-21-VZKP229D.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-QGUU886F/TL-21-QGUU886F.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-DF4101/TL-20-DF4101.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-879184/TL-20-879184.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-664423/TL-20-664423.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-36A961/TL-20-36A961.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-9A6CA1/TL-20-9A6CA1.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-7E5975/TL-20-7E5975.sorted.bam", 
 		con2BAMFiles = "/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-ZVRBQA9H/TL-21-ZVRBQA9H.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-E6727A/TL-21-E6727A.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-62427B/TL-21-62427B.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-84U67PPG/TL-21-84U67PPG.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-56286D/TL-20-56286D.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-2F7E80/TL-20-2F7E80.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-19-EBC5FF/TL-19-EBC5FF.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-19-C46B1C/TL-19-C46B1C.sorted.bam",
 		proportionA = "0.90,0.85,0.80,0.75",
-		modelOrganism = "human",
+		modelOrganism = "mouse",
 		apriori_annotations = True 
 		)
 
-	ExtractPolyASites4Bulk1._mergePolyADBandPolyASite()
-	# ExtractPolyASites4Bulk1._makeGeneBed()
-	# ExtractPolyASites4Bulk1._generateFinalSoftClippedBEDFile()
-	# ExtractPolyASites4Bulk1._generateSAF()
-	# ExtractPolyASites4Bulk1._computeFeatureCounts()
+	ExtractPolyASites4Bulk1.test()
+	# ExtractPolyASites4Bulk1.filterPolyADBandPolyASite()
 
 if __name__ == "__main__":
     main()
