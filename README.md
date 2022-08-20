@@ -8,7 +8,7 @@ In this package, we provide the following resources:
 
 (2) Test scripts delineating key usage scenarios
 
-(3) Fine-trained CPAS-BERT models for both human and mouse model organisms.
+(3) Fine-tuned CPAS-BERT models for both human and mouse model organisms.
 
 ## Citation
 
