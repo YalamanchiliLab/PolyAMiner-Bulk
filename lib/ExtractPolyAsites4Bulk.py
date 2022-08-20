@@ -480,10 +480,6 @@ class ExtractPolyAsites4Bulk:
 
 		CPASBERT1.filter_CPAS_Sites()
 
-	def test(self):
-		print(self.APRIORI)
-
-
 def main():
 	ExtractPolyASites4Bulk1 = ExtractPolyAsites4Bulk(outDir = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Mouse_APriori",
 		outPrefix = "mouse_", 
@@ -496,7 +492,6 @@ def main():
 		apriori_annotations = True 
 		)
 
-	ExtractPolyASites4Bulk1.test()
 	# ExtractPolyASites4Bulk1.filterPolyADBandPolyASite()
 
 if __name__ == "__main__":
