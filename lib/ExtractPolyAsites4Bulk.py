@@ -26,7 +26,7 @@ class ExtractPolyAsites4Bulk:
 			self.APRIORI = libPath + "/APrioriAnnotations_PolyADB_PolyASite_mouse_mm10.bed"
 
 		elif modelOrganism == "human":
-			self.modelPath = libPath + "/hg38_checkpoint-16000"
+			self.modelPath = libPath + "/hg38_checkpoint-64000"
 			self.POLYASITE = libPath + "/PolyASite_human_hg38.bed"
 			self.POLYADB = libPath + "/PolyADB_human_hg38.bed"
 			self.APRIORI = libPath + "/APrioriAnnotations_PolyADB_PolyASite_human_hg38.bed"
@@ -481,18 +481,18 @@ class ExtractPolyAsites4Bulk:
 		CPASBERT1.filter_CPAS_Sites()
 
 def main():
-	ExtractPolyASites4Bulk1 = ExtractPolyAsites4Bulk(outDir = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Mouse_APriori",
-		outPrefix = "mouse_", 
-		fasta = "/mnt/belinda_local/venkata/data/Index_Files/Mouse/GRCm38.primary_assembly.genome.fa",
-		gtf = "/mnt/belinda_local/venkata/data/Index_Files/Mouse/gencode.vM23.primary_assembly.annotation.gtf",
+	ExtractPolyASites4Bulk1 = ExtractPolyAsites4Bulk(outDir = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori",
+		outPrefix = "human_", 
+		fasta = "/mnt/belinda_local/venkata/data/Index_Files/Human/GenomeFasta_GTF/GRCh38.primary_assembly.genome.fa",
+		gtf = "/mnt/belinda_local/venkata/data/Index_Files/Human/GenomeFasta_GTF/gencode.v33.primary_assembly.annotation.gtf",
 		con1BAMFiles = "/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-VZKP229D/TL-21-VZKP229D.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-QGUU886F/TL-21-QGUU886F.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-DF4101/TL-20-DF4101.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-879184/TL-20-879184.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-664423/TL-20-664423.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-36A961/TL-20-36A961.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-9A6CA1/TL-20-9A6CA1.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-7E5975/TL-20-7E5975.sorted.bam", 
 		con2BAMFiles = "/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-ZVRBQA9H/TL-21-ZVRBQA9H.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-E6727A/TL-21-E6727A.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-62427B/TL-21-62427B.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-84U67PPG/TL-21-84U67PPG.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-56286D/TL-20-56286D.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-2F7E80/TL-20-2F7E80.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-19-EBC5FF/TL-19-EBC5FF.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-19-C46B1C/TL-19-C46B1C.sorted.bam",
 		proportionA = "0.90,0.85,0.80,0.75",
-		modelOrganism = "mouse",
+		modelOrganism = "human",
 		apriori_annotations = True 
 		)
 
-	# ExtractPolyASites4Bulk1.filterPolyADBandPolyASite()
+	ExtractPolyASites4Bulk1.filterPolyADBandPolyASite()
 
 if __name__ == "__main__":
     main()

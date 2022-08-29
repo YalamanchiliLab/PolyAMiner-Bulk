@@ -41,7 +41,7 @@ python3 -m pip install -r requirements.txt
 
 ### 2.1: Download "6-new-12w-0" from https://bcm.box.com/s/1lo85ig6eop2a5e12d52ytd6q98fg4xa and extract it into the /lib folder
 
-### 2.2: Download "CPASBERT_TrainedModels" from https://bcm.box.com/s/cv73vwinln518fvwo9ld6dk5qjm35mzw and extract it into the /lib folder
+### 2.2: Download "CPASBERT_TrainedModels" from https://bcm.box.com/s/d1yt6iz95r18rfs2kf22thc58r3qipxg and extract it into the /lib folder
 
 ### 2.3: Download organism-specific fasta and gtf reference files from https://bcm.box.com/s/vyze88bg9wr71kkxmz5yi4hvi8vstscd OR directly from Ensemble: http://uswest.ensembl.org/info/data/ftp/index.html/
 
