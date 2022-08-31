@@ -3,6 +3,10 @@ import pandas as pd
 import numpy as np
 from pyfasta import Fasta
 import gtfparse as gp
+import torch
+from transformers import BertTokenizer, BertModel, DNATokenizer
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 class CPASBERT:
 	def __init__(self, outDir, outPrefix, modelPath, fasta, gtf, predictions, denovoapasiteBED, geneBED, polyADB, polyASite):
@@ -361,10 +365,98 @@ class CPASBERT:
 		print(cmd) #Make sure code is written properly
 		os.system(cmd)
 
+	def _formatAttention(self, attention):
+		squeezed = []
+		for layer_attention in attention:
+			# 1 x num_heads x seq_len x seq_len
+			if len(layer_attention.shape) != 4:
+				raise ValueError("The attention tensor does not have the correct number of dimensions. Make sure you set "
+					"output_attentions=True when initializing your model.")
+			squeezed.append(layer_attention.squeeze(0))
+		# num_layers x num_heads x seq_len x seq_len
+		return torch.stack(squeezed)
+
+	def _getAttentionDNA(self, model, tokenizer, sentence_a, start, end):
+		inputs = tokenizer.encode_plus(sentence_a, sentence_b=None, return_tensors='pt', add_special_tokens=True)
+		input_ids = inputs['input_ids']
+		attention = model(input_ids)[-1]
+		input_id_list = input_ids[0].tolist() # Batch index 0
+		tokens = tokenizer.convert_ids_to_tokens(input_id_list) 
+		attn = self._formatAttention(attention)
+		attn_score = []
+		for i in range(1, len(tokens)-1):
+			attn_score.append(float(attn[start:end+1,:,0,i].sum()))
+		return attn_score
+
+	def _getRealScore(self, attention_scores, kmer, metric):
+		counts = np.zeros([len(attention_scores)+kmer-1])
+		real_scores = np.zeros([len(attention_scores)+kmer-1])
+
+		if metric == "mean":
+			for i, score in enumerate(attention_scores):
+				for j in range(kmer):
+					counts[i+j] += 1.0
+					real_scores[i+j] += score
+
+			real_scores = real_scores/counts
+		else:
+			pass
+
+		return real_scores
+
+	def generateAttentionHeatmap(self, SequenceBEDFileLoc):
+		tokenizer_name = 'dna6'
+		model = BertModel.from_pretrained(self.MODEL_PATH, output_attentions=True)
+		tokenizer = DNATokenizer.from_pretrained(tokenizer_name, do_lower_case=False)
+
+		#might have to play around with the size of master_scores; either self.intervalLength, self.intervalLength-1, or self.intervalLength+1
+		master_scores = np.empty((0, 100), int)
+
+		# SequenceBed = pd.read_csv(SequenceBEDFileLoc, sep = "\t", header = None, names = ["Chr", "Start", "End", "rnd", "Length", "Strand", "Sequence", "Label"])
+		# SequenceList = SequenceBed.Sequence.values.tolist()
+		# LabelList = SequenceBed.Label.values.tolist()
+		# SequenceList = SequenceList[0:49]
+		# print(LabelList[0])
+
+		x = 0
+		# for raw_sentence in SequenceList:
+		for raw_sentence in SequenceBEDFileLoc:
+			sentence_a = self._getKmerSentence(raw_sentence, kmer = 6)
+			tokens = sentence_a.split()
+
+			#might have to change args.start_layer and args.end_layer parameter
+			attention = self._getAttentionDNA(model, tokenizer, sentence_a, start=11, end=11)
+			attention_scores = np.array(attention).reshape(np.array(attention).shape[0],1)
+
+			real_scores = self._getRealScore(attention_scores, kmer = 6, metric = "mean")
+			scores = real_scores.reshape(1, real_scores.shape[0])
+
+			master_scores = np.concatenate((master_scores, scores))
+			x += 1
+			print(str(x) + " sequences analyzed!")
+
+		master_scores_npy_saveLoc = self.outDir + "master_attention_scores.npy"
+		np.save(master_scores_npy_saveLoc, master_scores)
+
+		# plot        
+		sns.set()
+		ax = sns.heatmap(master_scores, cmap='YlGnBu', vmin=0, vmax=2)
+		# x_values = []
+		# x=-250
+		# while x < 70:
+		# 	x_values.append(x)
+		# 	x += 13
+		# ax.set_xticklabels(x_values)
+		plt.show()
+		plt.savefig(self.outDir + "heatmap_visualization.png")
+
 def main():
-	CPASBERT1 = CPASBERT(outDir = "/mnt/atlas_local/venkata/data/PolyA-miner_v1.5/CPAS_BERT_TESTING/Human_hg38",
+	libPath = os.path.dirname(os.path.abspath(__file__)) + "/CPASBERT_TrainedModels"
+	modelPath = libPath + "/hg38_checkpoint-64000"
+	print(modelPath)
+	CPASBERT1 = CPASBERT(outDir = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori",
 		outPrefix = "Human_hg38_", 
-		modelPath = "",
+		modelPath = modelPath,
 		fasta = "/mnt/atlas_local/venkata/data/PolyA-miner_v1.5/ReferenceFiles/GRCh38.primary_assembly.genome.fa",
 		gtf = "/mnt/atlas_local/venkata/data/PolyA-miner_v1.5/ReferenceFiles/gencode.v33.primary_assembly.annotation.gtf",
 		predictions = "",
@@ -374,7 +466,15 @@ def main():
 		polyASite = "/mnt/localstorage/venkata/data/Project_PolyAMinerBulk_Publication/PolyA-miner_v1.4/CPAS_BERT_TESTING/Human_hg38/PolyASite_human_hg38.bed"
 		)
 
-	CPASBERT1.trainModel()
+
+	# NegLabeledSequenceBedLoc = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori/Human_hg38_NegLabeledSequence.bed"
+	# CPASBERT1.generateAttentionHeatmap(NegLabeledSequenceBedLoc)
+
+	PosLabeledSequenceBedLoc = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori/Human_hg38_PosLabeledSequence.bed"
+	SequencePickleLoc = "/mnt/belinda_local/venkata/data/venkata/DNABERT_Prelim/examples/sample_data/ft/CPAS_102_TrainingData_MixedIntronAnd3UTRNeg/Visualizations/filtered_chr16CPASSkeleton_CPASProb50_500_sequence.pkl"
+
+	CPASBERT1.generateAttentionHeatmap(SequencePickleLoc)
+	# CPASBERT1.trainModel()
 
 if __name__ == "__main__":
     main()

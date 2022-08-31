@@ -8,7 +8,6 @@ import pybedtools as pb, gtfparse as gp
 import os, sys, glob, time, argparse, pysam
 import concurrent.futures as cf
 import numpy as np
-
 from CPASBERT import CPASBERT
 
 class ExtractPolyAsites4Bulk:
