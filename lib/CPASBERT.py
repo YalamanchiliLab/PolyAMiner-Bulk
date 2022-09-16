@@ -404,7 +404,7 @@ class CPASBERT:
 
 		return real_scores
 
-	def generateAttentionHeatmap(self, SequenceBEDFileLoc):
+	def generateAttentionHeatmap(self, SequenceBEDFileLoc, imagePrefix):
 		tokenizer_name = 'dna6'
 		model = BertModel.from_pretrained(self.MODEL_PATH, output_attentions=True)
 		tokenizer = DNATokenizer.from_pretrained(tokenizer_name, do_lower_case=False)
@@ -412,20 +412,22 @@ class CPASBERT:
 		#might have to play around with the size of master_scores; either self.intervalLength, self.intervalLength-1, or self.intervalLength+1
 		master_scores = np.empty((0, 100), int)
 
-		# SequenceBed = pd.read_csv(SequenceBEDFileLoc, sep = "\t", header = None, names = ["Chr", "Start", "End", "rnd", "Length", "Strand", "Sequence", "Label"])
-		# SequenceList = SequenceBed.Sequence.values.tolist()
-		# LabelList = SequenceBed.Label.values.tolist()
-		# SequenceList = SequenceList[0:49]
-		# print(LabelList[0])
+		SequenceBed = pd.read_csv(SequenceBEDFileLoc, sep = "\t", header = None, names = ["Chr", "Start", "End", "rnd", "Length", "Strand", "Sequence", "Label"])
+		SequenceBed = SequenceBed.loc[SequenceBed['Strand'] == "+"]
+		SequenceList = SequenceBed.Sequence.values.tolist()
+		LabelList = SequenceBed.Label.values.tolist()
+		SequenceList = SequenceList[0:499]
+		print(LabelList[0])
 
 		x = 0
-		# for raw_sentence in SequenceList:
-		for raw_sentence in SequenceBEDFileLoc:
+		for raw_sentence in SequenceList:
+			raw_sentence = str(raw_sentence)
 			sentence_a = self._getKmerSentence(raw_sentence, kmer = 6)
 			tokens = sentence_a.split()
 
 			#might have to change args.start_layer and args.end_layer parameter
-			attention = self._getAttentionDNA(model, tokenizer, sentence_a, start=11, end=11)
+			attention = self._getAttentionDNA(model, tokenizer, sentence_a, start=9, end=12)
+			print(attention)
 			attention_scores = np.array(attention).reshape(np.array(attention).shape[0],1)
 
 			real_scores = self._getRealScore(attention_scores, kmer = 6, metric = "mean")
@@ -441,14 +443,18 @@ class CPASBERT:
 		# plot        
 		sns.set()
 		ax = sns.heatmap(master_scores, cmap='YlGnBu', vmin=0, vmax=2)
-		# x_values = []
-		# x=-250
-		# while x < 70:
-		# 	x_values.append(x)
-		# 	x += 13
-		# ax.set_xticklabels(x_values)
+		x_values = []
+		x= -50
+		while x < 50:
+			x_values.append(x)
+			x += 5
+		ax.set_xticklabels(x_values)
 		plt.show()
-		plt.savefig(self.outDir + "heatmap_visualization.png")
+		plt.savefig(self.outDir + imagePrefix + "heatmap_visualization.png")
+		plt.figure().clear()
+		plt.close()
+		plt.cla()
+		plt.clf()
 
 def main():
 	libPath = os.path.dirname(os.path.abspath(__file__)) + "/CPASBERT_TrainedModels"
@@ -457,23 +463,21 @@ def main():
 	CPASBERT1 = CPASBERT(outDir = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori",
 		outPrefix = "Human_hg38_", 
 		modelPath = modelPath,
-		fasta = "/mnt/atlas_local/venkata/data/PolyA-miner_v1.5/ReferenceFiles/GRCh38.primary_assembly.genome.fa",
-		gtf = "/mnt/atlas_local/venkata/data/PolyA-miner_v1.5/ReferenceFiles/gencode.v33.primary_assembly.annotation.gtf",
+		fasta = "",
+		gtf = "",
 		predictions = "",
 		denovoapasiteBED = "",
-		geneBED = "/mnt/localstorage/venkata/data/Project_PolyAMinerBulk_Publication/PolyA-miner_v1.4/CPAS_BERT_TESTING/Human_hg38/Human_hg38_Genes.bed",
-		polyADB = "/mnt/localstorage/venkata/data/Project_PolyAMinerBulk_Publication/PolyA-miner_v1.4/CPAS_BERT_TESTING/Human_hg38/PolyADB_human_hg38.bed",
-		polyASite = "/mnt/localstorage/venkata/data/Project_PolyAMinerBulk_Publication/PolyA-miner_v1.4/CPAS_BERT_TESTING/Human_hg38/PolyASite_human_hg38.bed"
+		geneBED = "",
+		polyADB = "",
+		polyASite = ""
 		)
 
 
-	# NegLabeledSequenceBedLoc = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori/Human_hg38_NegLabeledSequence.bed"
-	# CPASBERT1.generateAttentionHeatmap(NegLabeledSequenceBedLoc)
+	NegLabeledSequenceBedLoc = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori/Human_hg38_NegLabeledSequence.bed"
+	CPASBERT1.generateAttentionHeatmap(NegLabeledSequenceBedLoc, "NegSequence")
 
 	PosLabeledSequenceBedLoc = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori/Human_hg38_PosLabeledSequence.bed"
-	SequencePickleLoc = "/mnt/belinda_local/venkata/data/venkata/DNABERT_Prelim/examples/sample_data/ft/CPAS_102_TrainingData_MixedIntronAnd3UTRNeg/Visualizations/filtered_chr16CPASSkeleton_CPASProb50_500_sequence.pkl"
-
-	CPASBERT1.generateAttentionHeatmap(SequencePickleLoc)
+	CPASBERT1.generateAttentionHeatmap(PosLabeledSequenceBedLoc, "PosSequence")
 	# CPASBERT1.trainModel()
 
 if __name__ == "__main__":
