@@ -78,6 +78,7 @@ class VisualizeTracks:
 		fw.write("file_type = bed\n")
 		fw.write("merge_transcripts = true\n")
 		fw.write("overlay_previous = yes\n")
+		fw.write("color = #e3dc62\n")
 		fw.write("all_labels_inside = true\n")
 		fw.write("file_type = bed\n")
 
@@ -90,17 +91,23 @@ class VisualizeTracks:
 
 		fw.close()
 
-	def _parseResults(self, numTop, sortAscending):
+	def _parseResults(self, numTop, NegOrPosPolyAIndex):
 		resultsDF = pd.read_csv(self.polyAResults, sep = "\t")
-		resultsDF = resultsDF[resultsDF['AdjG_Pval'] < 0.05] 
-		resultsDF = resultsDF.sort_values(by='PolyAIndex', ascending=sortAscending)
-		try:
-			resultsDF = resultsDF.iloc[:numTop]
-		except:
-			print("numTop parameter greater than total # of significant DAGs")
+		resultsDF = resultsDF[resultsDF['AdjG_Pval'] < 0.05]
+
+		if NegOrPosPolyAIndex == "Positive": 
+			resultsDF = resultsDF[resultsDF['PolyAIndex'] > 0]
+			resultsDF = resultsDF.sort_values(by='PolyAIndex', ascending=False)
+		else:
+			resultsDF = resultsDF[resultsDF['PolyAIndex'] < 0]
+			resultsDF = resultsDF.sort_values(by='PolyAIndex', ascending=True)
+		
+		resultsDF = resultsDF.reset_index()
+		resultsDF = resultsDF.iloc[:numTop]
+
 		return resultsDF
 
-	def _generatePlot(self, resultsDF):
+	def _generatePlots(self, resultsDF):
 		for index, row in resultsDF.iterrows():
 			Gene = row["Symbol"]
 			self.formattedCPAS_BED_FileLoc = self.outDir + self.outPrefix + Gene + "_CPASdb.bed"
@@ -120,7 +127,7 @@ class VisualizeTracks:
 
 			self._makeConfigFile()
 
-			OUTPUT_FILEPATH = self.outDir + self.outPrefix + Gene +".DAG_Track_WholeGeneView.png"
+			OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(index+1) + "_" + Gene +".DAG_Track_WholeGeneView.png"
 			chromosome = CPAS_BED_DF[0][0]
 			start = int(CPAS_BED_DF[1].min()) - 10000
 			end = int(CPAS_BED_DF[2].max()) + 10000
@@ -134,7 +141,7 @@ class VisualizeTracks:
 			os.system(cmd)
 			
 			try:
-				OUTPUT_FILEPATH = self.outDir + self.outPrefix + Gene +".DAG_Track_3UTRView.png" 
+				OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(index+1) + "_" + Gene +".DAG_Track_3UTRView.png" 
 				CPAS_BED_DF = CPAS_BED_DF[CPAS_BED_DF[3].str.contains("UTR3") | CPAS_BED_DF[3].str.contains("UN")]
 				start = int(CPAS_BED_DF[1].min()) - 10000
 				end = int(CPAS_BED_DF[2].max()) + 10000
@@ -157,8 +164,8 @@ class VisualizeTracks:
 			os.system("rm -R " + outDirNoSlash)
 		os.system("mkdir " + outDirNoSlash)
 
-		resultsDF = self._parseResults(numTop = self.numTop, sortAscending = False)
-		self._generatePlot(resultsDF)
+		resultsDF = self._parseResults(numTop = self.numTop, NegOrPosPolyAIndex = "Positive")
+		self._generatePlots(resultsDF)
 
 		self.outDir = commonBase + "Graphics_NegPolyAIndex/"
 		outDirNoSlash = self.outDir.rstrip("/")
@@ -166,8 +173,8 @@ class VisualizeTracks:
 			os.system("rm -R " + outDirNoSlash)
 		os.system("mkdir " + outDirNoSlash)
 
-		resultsDF = self._parseResults(numTop = self.numTop, sortAscending = True)
-		self._generatePlot(resultsDF)
+		resultsDF = self._parseResults(numTop = self.numTop, NegOrPosPolyAIndex = "Negative")
+		self._generatePlots(resultsDF)
 
 def main ():
 	VisualizeTracks1 = VisualizeTracks(outDir = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/TEST_VISUALIZATIONS",
