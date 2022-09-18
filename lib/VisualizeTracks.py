@@ -1,34 +1,106 @@
-import os, sys
+import os, sys, glob
 import pandas as pd
 
 class VisualizeTracks:
-	def __init__ (self, outDir, outPrefix, gtf, polyAResults, condition1SamplesBW, condition2SamplesBW, numTop):
+	def __init__ (self, outDir, outPrefix, gtf, polyAResults, condition1SamplesBAM, condition2SamplesBAM, numTop):
 		self.outDir = outDir.rstrip("/")+"/"
 		self.outPrefix = outPrefix
 		self.GTF = gtf
 		self.polyAResults = polyAResults
-		self.condition1SamplesBW = condition1SamplesBW.split(",")
-		self.condition2SamplesBW = condition2SamplesBW.split(",")
+		self.condition1SamplesBAM = condition1SamplesBAM.split(",")
+		self.condition2SamplesBAM = condition2SamplesBAM.split(",")
+
 		self.numTop = numTop
 
-		self.CONFIG_FILEPATH = self.outDir + self.outPrefix + ".config.ini"
+		self.condition1SamplesBW_FORWARD = []
+		self.condition1SamplesBW_REVERSE = []
 
+		self.condition2SamplesBW_FORWARD = []
+		self.condition2SamplesBW_REVERSE = []
+
+		self.CONFIG_FILEPATH_FORWARD = self.outDir + self.outPrefix + "forward.config.ini"
+		self.CONFIG_FILEPATH_REVERSE = self.outDir + self.outPrefix + "reverse.config.ini"
+
+	def _checkDir (self, Dir):
+		DirNoSlash = Dir.rstrip("/")
+		if (os.path.isdir(DirNoSlash)):
+			os.system("rm -R " + DirNoSlash)
+		os.system("mkdir " + DirNoSlash)
 
 	def _convertBam2BW(self):
-		return None
+		counter = 1
+		total = (len(self.condition1SamplesBAM) * 2) + (len(self.condition2SamplesBAM)*2)
 
-	def _makeConfigFile(self):
-		fw = open(self.CONFIG_FILEPATH, 'w')
-		for i in range (0, len(self.condition1SamplesBW)):
+		for file in self.condition1SamplesBAM:
+			BASENAME_FORWARD = os.path.basename(file).replace(".bam","_forward_.bw")
+			BASENAME_REVERSE = os.path.basename(file).replace(".bam","_reverse_.bw")
+			OUTPUT_DIR = self.outDir + "Stranded_BW"
+			if (os.path.isdir(OUTPUT_DIR) == False):
+				os.system("mkdir " + OUTPUT_DIR)
+			OUTPUT_FORWARD = OUTPUT_DIR + "/" + BASENAME_FORWARD
+			OUTPUT_REVERSE = OUTPUT_DIR + "/" + BASENAME_REVERSE
+
+			if os.path.exists(OUTPUT_FORWARD) == False:
+				cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand forward -o "+OUTPUT_FORWARD)
+				print("Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
+				counter += 1
+				print(cmd)
+				os.system(cmd)
+			if os.path.exists(OUTPUT_REVERSE) == False: 
+				cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand reverse -o "+OUTPUT_REVERSE)
+				print("Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
+				counter += 1
+				print(cmd)
+				os.system(cmd)
+
+			self.condition1SamplesBW_FORWARD.append(OUTPUT_FORWARD)
+			self.condition1SamplesBW_REVERSE.append(OUTPUT_REVERSE)
+
+		for file in self.condition2SamplesBAM:
+			BASENAME_FORWARD = os.path.basename(file).replace(".bam","_forward_.bw")
+			BASENAME_REVERSE = os.path.basename(file).replace(".bam","_reverse_.bw")
+			OUTPUT_FORWARD = self.outDir + BASENAME_FORWARD
+			OUTPUT_REVERSE = self.outDir + BASENAME_REVERSE
+
+			if os.path.exists(OUTPUT_FORWARD) == False:
+				cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand forward -o "+OUTPUT_FORWARD)
+				print("Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
+				counter += 1
+				print(cmd)
+				os.system(cmd)
+			if os.path.exists(OUTPUT_REVERSE) == False: 
+				cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand reverse -o "+OUTPUT_REVERSE)
+				print("Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
+				counter += 1
+				print(cmd)
+				os.system(cmd)
+
+			self.condition2SamplesBW_FORWARD.append(OUTPUT_FORWARD)
+			self.condition2SamplesBW_REVERSE.append(OUTPUT_REVERSE)
+
+	def _makeConfigFile(self, strand):		
+		if (strand == "forward"):
+			CONFIG_FILEPATH = self.CONFIG_FILEPATH_FORWARD
+			condition1SamplesBW = self.condition1SamplesBW_FORWARD
+			condition2SamplesBW = self.condition2SamplesBW_FORWARD
+		
+		elif (strand == "reverse"):
+			CONFIG_FILEPATH = self.CONFIG_FILEPATH_REVERSE
+			condition1SamplesBW = self.condition1SamplesBW_REVERSE
+			condition2SamplesBW = self.condition2SamplesBW_REVERSE
+
+		fw = open(CONFIG_FILEPATH, 'w')
+
+		for i in range (0, len(condition1SamplesBW)):
 			fw.write("[bigwig control file]\n")
-			fw.write("file = " + self.condition1SamplesBW[i] + "\n")
+			fw.write("file = " + condition1SamplesBW[i] + "\n")
 			fw.write("height = 4\n")
 			fw.write("color = green\n")
 			fw.write("nans_to_zeros = true\n")
 			fw.write("summary_method = mean\n")
 			fw.write("show_data_range = true\n")
 			fw.write("alpha = 0.5\n")
-			fw.write("title = Control BigWigs (x"+ str(len(self.condition1SamplesBW)) +")\n")
+			fw.write("title = Control BigWigs (x"+ str(len(condition1SamplesBW)) +")\n")
 			fw.write("min_value = 0\n")
 			fw.write("overlay_previous = share-y\n")
 			fw.write("max_value = 0.5\n")
@@ -36,16 +108,16 @@ class VisualizeTracks:
 		fw.write("[spacer]\n")
 		fw.write("height = 4\n")
 
-		for i in range (0, len(self.condition2SamplesBW)):
+		for i in range (0, len(condition2SamplesBW)):
 			fw.write("[bigwig treatment file]\n")
-			fw.write("file = " + self.condition2SamplesBW[i] + "\n")
+			fw.write("file = " + condition2SamplesBW[i] + "\n")
 			fw.write("height = 4\n")
 			fw.write("color = red\n")
 			fw.write("nans_to_zeros = true\n")
 			fw.write("summary_method = mean\n")
 			fw.write("show_data_range = true\n")
 			fw.write("alpha = 0.5\n")
-			fw.write("title = Treatment BigWigs (x"+ str(len(self.condition2SamplesBW)) +")\n")
+			fw.write("title = Treatment BigWigs (x"+ str(len(condition2SamplesBW)) +")\n")
 			fw.write("min_value = 0\n")
 			fw.write("overlay_previous = share-y\n")
 			fw.write("max_value = 0.5\n")
@@ -125,19 +197,27 @@ class VisualizeTracks:
 			CPAS_BED_DF.to_csv(self.formattedCPAS_BED_FileLoc, sep = "\t", header = None, index = False)
 			#Maybe slop CPAS BED by X coordinates on both sides???
 
-			self._makeConfigFile()
+			self._makeConfigFile(strand = "forward")
+			self._makeConfigFile(strand = "reverse")
 
 			OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(index+1) + "_" + Gene +".DAG_Track_WholeGeneView.png"
 			chromosome = CPAS_BED_DF[0][0]
 			start = int(CPAS_BED_DF[1].min()) - 10000
 			end = int(CPAS_BED_DF[2].max()) + 10000
+			strand = CPAS_BED_DF[5][0]
+		
 			if (start > end):
 				temp1 = start
 				temp2 = end
 				end = temp1
 				start = temp2
 			region = chromosome + ":" + str(start) + "-" + str(end)
-			cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+			
+			if (strand == "+"):
+				cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+			elif (strand == "-"):
+				cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+
 			os.system(cmd)
 			
 			try:
@@ -151,28 +231,27 @@ class VisualizeTracks:
 					end = temp1
 					start = temp2
 				region = chromosome + ":" + str(start) + "-" + str(end)
-				cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+
+				if (strand == "+"):
+					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+				elif (strand == "-"):
+					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
 				os.system(cmd)
 			except:
 				print(Gene + "has no 3'UTR or UN C/PASs.....")
 
 	def visualizeTopDAGs(self):
-		commonBase = self.outDir
-		self.outDir = commonBase + "Graphics_PosPolyAIndex/"
-		outDirNoSlash = self.outDir.rstrip("/")
-		if (os.path.isdir(outDirNoSlash)):
-			os.system("rm -R " + outDirNoSlash)
-		os.system("mkdir " + outDirNoSlash)
+		self._convertBam2BW()
 
+		commonBase = self.outDir
+
+		self.outDir = commonBase + "Graphics_PosPolyAIndex/"
+		self._checkDir(self.outDir)
 		resultsDF = self._parseResults(numTop = self.numTop, NegOrPosPolyAIndex = "Positive")
 		self._generatePlots(resultsDF)
 
 		self.outDir = commonBase + "Graphics_NegPolyAIndex/"
-		outDirNoSlash = self.outDir.rstrip("/")
-		if (os.path.isdir(outDirNoSlash)):
-			os.system("rm -R " + outDirNoSlash)
-		os.system("mkdir " + outDirNoSlash)
-
+		self._checkDir(self.outDir)
 		resultsDF = self._parseResults(numTop = self.numTop, NegOrPosPolyAIndex = "Negative")
 		self._generatePlots(resultsDF)
 
@@ -181,8 +260,10 @@ def main ():
 		outPrefix = "TEST_",
 		gtf = "/mnt/belinda_local/venkata/data/Index_Files/Human/GenomeFasta_GTF/gencode.v33.primary_assembly.annotation.gtf",
 		polyAResults = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/PolyAMiner_Results/CtrlvsRBM17siRNA_3UTROnly_SoftClipped+Annotations_Run4/3UTROnly_PolyA-miner.Results.txt",
-		condition1SamplesBW = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8169_.sorted.bw,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8170_.sorted.bw,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8171_.sorted.bw",
-		condition2SamplesBW = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8162_.sorted.bw,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8163_.sorted.bw,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8164_.sorted.bw",
+		# condition1SamplesBW = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8169_.sorted.bw,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8170_.sorted.bw,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8171_.sorted.bw",
+		# condition2SamplesBW = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8162_.sorted.bw,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8163_.sorted.bw,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8164_.sorted.bw",
+		condition1SamplesBAM = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8169/HZ8169_.sorted.bam,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8170/HZ8170_.sorted.bam,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8171/HZ8171_.sorted.bam",
+		condition2SamplesBAM = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8162/HZ8162_.sorted.bam,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8163/HZ8163_.sorted.bam,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8164/HZ8164_.sorted.bam",
 		numTop = 100
 		)
 
