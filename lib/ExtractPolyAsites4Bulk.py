@@ -11,11 +11,12 @@ import numpy as np
 from CPASBERT import CPASBERT
 
 class ExtractPolyAsites4Bulk:
-	def __init__(self, outDir, outPrefix, fasta, gtf, con1BAMFiles, con2BAMFiles, proportionA, modelOrganism, apriori_annotations):
+	def __init__(self, outDir, outPrefix, fasta, gtf, con1BAMFiles, con2BAMFiles, proportionA, modelOrganism, apriori_annotations, ignoreFeatures):
 		self.outDir = outDir.rstrip("/")+"/"
 		self.outPrefix = outPrefix
 
 		self.apriori_annotations = apriori_annotations
+		self.ignoreFeatures = ignoreFeatures
 
 		libPath = os.path.dirname(os.path.abspath(__file__)) + "/CPASBERT_TrainedModels"
 		if modelOrganism == "mouse":
@@ -434,6 +435,16 @@ class ExtractPolyAsites4Bulk:
 
 		df.to_csv(self.FINAL_SAF_FILE, sep='\t', index=False, header=None)
 
+	def _filterIgnoredFeatures(self):
+		ignore_features="".join(self.ignoreFeatures).replace(" ","").split(",")
+		
+		if len(ignore_features) >=1:
+			PA_FT_df=pd.read_csv(self.FINAL_SOFTCLIPPED_BED_FILE,sep="\t",header=None,index_col=None)
+			PA_FT_df.columns=['chr','start','end','GeneID','Feature','strand']
+			for ig in ignore_features:
+				PA_FT_df=PA_FT_df[~PA_FT_df['Feature'].str.contains(ig)]
+			PA_FT_df.to_csv(self.FINAL_SOFTCLIPPED_BED_FILE,sep="\t",header=False,index=False)
+
 	def extractPolyA(self):
 		self._truePolyA()
 		self._generateFinalSoftClippedBEDFile()
@@ -455,9 +466,9 @@ class ExtractPolyAsites4Bulk:
 		if (self.apriori_annotations):
 			self._loadFilteredPolyADBandPolyASite()
 
+		self._filterIgnoredFeatures()
 		self._generateSAF()
 
-		return True
 
 	def filterPolyADBandPolyASite(self):
 		self._mergePolyADBandPolyASite()
@@ -488,7 +499,8 @@ def main():
 		con2BAMFiles = "/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-ZVRBQA9H/TL-21-ZVRBQA9H.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-E6727A/TL-21-E6727A.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-62427B/TL-21-62427B.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-84U67PPG/TL-21-84U67PPG.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-56286D/TL-20-56286D.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-2F7E80/TL-20-2F7E80.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-19-EBC5FF/TL-19-EBC5FF.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-19-C46B1C/TL-19-C46B1C.sorted.bam",
 		proportionA = "0.90,0.85,0.80,0.75",
 		modelOrganism = "human",
-		apriori_annotations = True 
+		apriori_annotations = True,
+		ignoreFeatures = "" 
 		)
 
 	ExtractPolyASites4Bulk1.filterPolyADBandPolyASite()

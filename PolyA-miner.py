@@ -208,7 +208,8 @@ def main():
 		con2BAMFiles = args.c2,
 		proportionA = "0.90,0.85,0.80,0.75",
 		modelOrganism = args.modelOrganism,
-		apriori_annotations = args.apriori_annotations
+		apriori_annotations = args.apriori_annotations, 
+		ignoreFeatures = args.ignore
 		)
 
 	if args.expNovel == 1:

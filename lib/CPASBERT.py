@@ -442,13 +442,19 @@ class CPASBERT:
 
 		# plot        
 		sns.set()
-		ax = sns.heatmap(master_scores, cmap='YlGnBu', vmin=0, vmax=2)
-		x_values = []
-		x= -50
-		while x < 50:
-			x_values.append(x)
-			x += 5
-		ax.set_xticklabels(x_values)
+		# ax = sns.heatmap(master_scores, cmap='YlGnBu', vmin=0, vmax=2)
+		ax = sns.clustermap(master_scores, cmap='YlGnBu', vmin=0, vmax=2, row_cluster=True, col_cluster = False, yticklabels=False)
+		ax.ax_row_dendrogram.set_visible(False)
+		ax.ax_row_dendrogram.set_xlim([0,0])
+		x0, y0, w, h = ax.cbar_pos
+		ax.ax_cbar.set_position([x0, 0.4, w, h])
+
+		# x_values = []
+		# x= -50
+		# while x < 50:
+		# 	x_values.append(x)
+		# 	x += 5
+		# ax.set_xticklabels(x_values)
 		plt.show()
 		plt.savefig(self.outDir + imagePrefix + "heatmap_visualization.png")
 		plt.figure().clear()
