@@ -469,6 +469,8 @@ class ExtractPolyAsites4Bulk:
 		self._filterIgnoredFeatures()
 		self._generateSAF()
 
+		return True
+
 
 	def filterPolyADBandPolyASite(self):
 		self._mergePolyADBandPolyASite()
