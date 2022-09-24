@@ -32,7 +32,7 @@ def logEvent(logfile, event):
 		print('# '+ event + ' on: ' + localdate + ' at: ' + localtime)
 
 def main():
-	parser = argparse.ArgumentParser(description='''PolyA-miner v1.5: Inferring alternative poly-adenylation changes
+	parser = argparse.ArgumentParser(description='''PolyAMiner-Bulk: Inferring alternative poly-adenylation changes
 	from bulk-RNAseq data  - Venkata Jonnakuti et al., \n''',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 	optional = parser._action_groups.pop()
 	required = parser.add_argument_group('Required arguments')
@@ -40,7 +40,7 @@ def main():
 
 	required.add_argument('-mode',help='Run mode options: \'bam\' to start from mapped data, \'fastq\' to start from raw data',choices=['bam','fastq'],default='bam',required='True',type=str)
 	optional.add_argument('-d',help='Base directory of input fastq files. Valid for -mode fastq ',type=str)
-	optional.add_argument('-o',help='Out put directory',type=str,default='PolyAminer_OUT')
+	optional.add_argument('-o',help='Output directory',type=str,default='PolyAminer_OUT')
 	required.add_argument('-c1',help='Comma-separated list of condition1 files. Full path for BAMs (index files are also expected) or Just file names for fastq', nargs='+',required='True',type=str)
 	required.add_argument('-c2',help='Comma-separated list of condition2 files. Full path for BAMs (index files are also expected) or Just file names for fastq ', nargs='+',required='True',type=str)
 	parser.add_argument('-s',help='Strand information 0: un-stranded 1: fwd-strand 2:rev-strand. ',choices=[0,1,2],type=int,default=0)

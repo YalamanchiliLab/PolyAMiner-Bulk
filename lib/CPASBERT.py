@@ -404,7 +404,7 @@ class CPASBERT:
 
 		return real_scores
 
-	def generateAttentionHeatmap(self, SequenceBEDFileLoc, imagePrefix):
+	def generateAttentionHeatmap(self, SequenceBEDFileLoc, imagePrefix, cmapPalette):
 		tokenizer_name = 'dna6'
 		model = BertModel.from_pretrained(self.MODEL_PATH, output_attentions=True)
 		tokenizer = DNATokenizer.from_pretrained(tokenizer_name, do_lower_case=False)
@@ -443,7 +443,8 @@ class CPASBERT:
 		# plot        
 		sns.set()
 		# ax = sns.heatmap(master_scores, cmap='YlGnBu', vmin=0, vmax=2)
-		ax = sns.clustermap(master_scores, cmap='YlGnBu', vmin=0, vmax=2, row_cluster=True, col_cluster = False, yticklabels=False)
+		# ax = sns.clustermap(master_scores, cmap='YlGnBu', vmin=0, vmax=2, row_cluster=True, col_cluster = False, yticklabels=False)
+		ax = sns.clustermap(master_scores, cmap=cmapPalette, vmin=0, vmax=2, row_cluster=True, col_cluster = False, yticklabels=False)
 		ax.ax_row_dendrogram.set_visible(False)
 		ax.ax_row_dendrogram.set_xlim([0,0])
 		x0, y0, w, h = ax.cbar_pos
@@ -480,10 +481,10 @@ def main():
 
 
 	NegLabeledSequenceBedLoc = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori/Human_hg38_NegLabeledSequence.bed"
-	CPASBERT1.generateAttentionHeatmap(NegLabeledSequenceBedLoc, "NegSequence")
+	CPASBERT1.generateAttentionHeatmap(NegLabeledSequenceBedLoc, "NegSequence", cmapPalette = "YlOrRd")
 
 	PosLabeledSequenceBedLoc = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori/Human_hg38_PosLabeledSequence.bed"
-	CPASBERT1.generateAttentionHeatmap(PosLabeledSequenceBedLoc, "PosSequence")
+	CPASBERT1.generateAttentionHeatmap(PosLabeledSequenceBedLoc, "PosSequence", cmapPalette = "YlGnBu")
 	# CPASBERT1.trainModel()
 
 if __name__ == "__main__":

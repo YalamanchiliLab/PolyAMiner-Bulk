@@ -1,4 +1,5 @@
 import os, sys, glob
+import argparse
 import pandas as pd
 
 class VisualizeTracks:
@@ -7,8 +8,8 @@ class VisualizeTracks:
 		self.outPrefix = outPrefix
 		self.GTF = gtf
 		self.polyAResults = polyAResults
-		self.condition1SamplesBAM = condition1SamplesBAM.split(",")
-		self.condition2SamplesBAM = condition2SamplesBAM.split(",")
+		self.condition1SamplesBAM = "".join(condition1SamplesBAM).replace(" ","").split(",")
+		self.condition2SamplesBAM = "".join(condition2SamplesBAM).replace(" ","").split(",")
 
 		self.numTop = numTop
 
@@ -256,16 +257,50 @@ class VisualizeTracks:
 		self._generatePlots(resultsDF)
 
 def main ():
-	VisualizeTracks1 = VisualizeTracks(outDir = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/TEST_VISUALIZATIONS",
-		outPrefix = "TEST_",
-		gtf = "/mnt/belinda_local/venkata/data/Index_Files/Human/GenomeFasta_GTF/gencode.v33.primary_assembly.annotation.gtf",
-		polyAResults = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/PolyAMiner_Results/CtrlvsRBM17siRNA_3UTROnly_SoftClipped+Annotations_Run4/3UTROnly_PolyA-miner.Results.txt",
-		# condition1SamplesBW = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8169_.sorted.bw,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8170_.sorted.bw,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8171_.sorted.bw",
-		# condition2SamplesBW = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8162_.sorted.bw,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8163_.sorted.bw,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8164_.sorted.bw",
-		condition1SamplesBAM = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8169/HZ8169_.sorted.bam,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8170/HZ8170_.sorted.bam,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8171/HZ8171_.sorted.bam",
-		condition2SamplesBAM = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8162/HZ8162_.sorted.bam,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8163/HZ8163_.sorted.bam,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8164/HZ8164_.sorted.bam",
-		numTop = 100
+	parser = argparse.ArgumentParser(description='''PolyAMiner-Bulk Visualization Module: Visualize PolyAMiner-Bulk Results - Venkata Jonnakuti et al., \n''',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+	required = parser.add_argument_group('Required arguments')
+
+	required.add_argument("-o", help = 'Output directory', type = str, default = 'PolyAminer_OUT')
+	required.add_argument("-outPrefix", help = 'Output file/s prefix', default = "PolyAminer_Out", type = str)
+	required.add_argument('-gtf',help = 'Reference gtf file',required = 'True', type = str)
+	required.add_argument("-polyAResults", help = "PolyAMiner-Bulk Results File", required = "True", type = str)
+	required.add_argument('-c1',help='Comma-separated list of condition1 BAM files in full path format. Index files are also expected', nargs='+',required='True',type=str)
+	required.add_argument('-c2',help='Comma-separated list of condition2 BAM files in full path format. Index files are also expected', nargs='+',required='True',type=str)
+	required.add_argument("-numTop", help = "Number of significant DAGs to visualize", type = int, default = 100)
+
+	args = parser.parse_args()
+	args_dict = vars(args)
+	args.o=args.o.rstrip("/")
+
+	VisualizeTracks1 = VisualizeTracks(outDir = args.o,
+		outPrefix = args.outPrefix,
+		gtf = args.gtf,
+		polyAResults = args.polyAResults,
+		condition1SamplesBAM = args.c1,
+		condition2SamplesBAM = args.c2,
+		numTop = args.numTop
 		)
+
+	# VisualizeTracks1 = VisualizeTracks(outDir = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/TEST_VISUALIZATIONS",
+	# 	outPrefix = "TEST_",
+	# 	gtf = "/mnt/belinda_local/venkata/data/Index_Files/Human/GenomeFasta_GTF/gencode.v33.primary_assembly.annotation.gtf",
+	# 	polyAResults = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/PolyAMiner_Results/CtrlvsRBM17siRNA_3UTROnly_SoftClipped+Annotations_Run4/3UTROnly_PolyA-miner.Results.txt",
+	# 	# condition1SamplesBW = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8169_.sorted.bw,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8170_.sorted.bw,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8171_.sorted.bw",
+	# 	# condition2SamplesBW = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8162_.sorted.bw,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8163_.sorted.bw,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BW/HZ8164_.sorted.bw",
+	# 	condition1SamplesBAM = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8169/HZ8169_.sorted.bam,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8170/HZ8170_.sorted.bam,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8171/HZ8171_.sorted.bam",
+	# 	condition2SamplesBAM = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8162/HZ8162_.sorted.bam,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8163/HZ8163_.sorted.bam,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8164/HZ8164_.sorted.bam",
+	# 	numTop = 100
+	# 	)
+
+	# VisualizeTracks1 = VisualizeTracks(outDir = "/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/PolyAMiner_Results/SubtypeCvsA_3UTROnly_Run6_Visualizations",
+	# 	outPrefix = "",
+	# 	gtf = "/mnt/belinda_local/venkata/data/Index_Files/Human/GenomeFasta_GTF/gencode.v33.primary_assembly.annotation.gtf",
+	# 	polyAResults = "/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/PolyAMiner_Results/SubtypeCvsA_3UTROnly_Run6/3UTROnly_PolyA-miner.Results.txt",
+	# 	condition1SamplesBAM = "/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-VZKP229D/TL-21-VZKP229D.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-21-QGUU886F/TL-21-QGUU886F.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-DF4101/TL-20-DF4101.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-36A961/TL-20-36A961.sorted.bam",
+	# 	condition2SamplesBAM = "/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-56286D/TL-20-56286D.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-20-2F7E80/TL-20-2F7E80.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-19-EBC5FF/TL-19-EBC5FF.sorted.bam,/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/hari_APA_Akash/02_BAM/TL-19-C46B1C/TL-19-C46B1C.sorted.bam",
+	# 	numTop = 1000
+	# 	)
 
 	VisualizeTracks1.visualizeTopDAGs()
 
