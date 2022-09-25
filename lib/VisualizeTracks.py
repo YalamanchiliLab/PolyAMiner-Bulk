@@ -60,8 +60,8 @@ class VisualizeTracks:
 		for file in self.condition2SamplesBAM:
 			BASENAME_FORWARD = os.path.basename(file).replace(".bam","_forward_.bw")
 			BASENAME_REVERSE = os.path.basename(file).replace(".bam","_reverse_.bw")
-			OUTPUT_FORWARD = self.outDir + BASENAME_FORWARD
-			OUTPUT_REVERSE = self.outDir + BASENAME_REVERSE
+			OUTPUT_FORWARD = OUTPUT_DIR + "/" + BASENAME_FORWARD
+			OUTPUT_REVERSE = OUTPUT_DIR + "/" + BASENAME_REVERSE
 
 			if os.path.exists(OUTPUT_FORWARD) == False:
 				cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand forward -o "+OUTPUT_FORWARD)
