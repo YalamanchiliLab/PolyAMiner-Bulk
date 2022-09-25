@@ -51,6 +51,8 @@ def main():
 	required.add_argument('-gtf',help='Reference gtf file',required='True',type=str)
 	required.add_argument('-pa',help='PolyA annotations file standard 6 column bed format',type=str)
 	required.add_argument('-apriori_annotations',help='Use pre-loaded a priori PolyASite 2.0 and PolyADB 3.0 annotations', action=argparse.BooleanOptionalAction)
+	required.add_argument('-paired',help='Sample files are paired (i.e., pre-treatment vs post-treatment) for beta-binomial test', action=argparse.BooleanOptionalAction)
+
 	
 	# Optional #
 	optional.add_argument('-umi',help='Length of UMIs, 0 if not used', type=int,default=0)
@@ -280,7 +282,7 @@ def main():
 	###################################
 	if args.t == "BB":
 		logEvent(logfile = logfile, event = 'Using BB model')
-		if STest.runBBtest(args.o.rstrip("/")+"/"+args.outPrefix+ '_APA.CountMatrix.GFil.PA.PR.txt', nc, nt, args.o, args.outPrefix, args.p,logBook):
+		if STest.runBBtest(args.o.rstrip("/")+"/"+args.outPrefix+ '_APA.CountMatrix.GFil.PA.PR.txt', nc, nt, args.o, args.outPrefix, args.p,logBook, args.paired):
 			logEvent(logfile = logfile, event = 'Completed beta-binomial testing')
 		else:
 			logEvent(logfile = logfile, event = "Error in beta-binomial testing")

@@ -27,7 +27,7 @@ def geneLevelBB(gdf):
 	Stat,Gpval= combine_pvalues(list(gdf["P-value"]), "stouffer", weights = np.absolute(list(gdf["DeltaU"])))
 	return([Gene,PolASites_No,PolyASites,DeltaU,maxPolyA,maxDeltaU,Gpval])
 
-def runBBtest(apa_matrix, nc, nt, out, key, npc,logfile):
+def runBBtest(apa_matrix, nc, nt, out, key, npc,logfile, paired):
 	try:
 		from rpy2.robjects.packages import importr
 		import rpy2.robjects as ro
@@ -70,7 +70,10 @@ def runBBtest(apa_matrix, nc, nt, out, key, npc,logfile):
 		n_threads=ro.conversion.py2rpy(npc)
 		alternative = ro.conversion.py2rpy("two.sided")
 		verbose = ro.vectors.BoolVector([False])
-		results=countdata.bb_test(Kdf_r,Ndf_r,ro.StrVector(grp),alternative,n_threads,verbose)
+		if paired:
+			results=countdata.ibb_test(Kdf_r,Ndf_r,ro.StrVector(grp),alternative,n_threads,verbose)
+		else:
+			results=countdata.bb_test(Kdf_r,Ndf_r,ro.StrVector(grp),alternative,n_threads,verbose)
 
 		localdate = time.strftime('%a %m/%d/%Y')
 		localtime = time.strftime('%H:%M:%S')
