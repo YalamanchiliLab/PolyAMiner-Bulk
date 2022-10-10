@@ -3,13 +3,16 @@ import argparse
 import pandas as pd
 
 class VisualizeTracks:
-	def __init__ (self, outDir, outPrefix, gtf, polyAResults, condition1SamplesBAM, condition2SamplesBAM, numTop):
+	def __init__ (self, outDir, outPrefix, gtf, polyAResults, condition1SamplesBAM, condition2SamplesBAM, condition1Name, condition2Name, numTop):
 		self.outDir = outDir.rstrip("/")+"/"
 		self.outPrefix = outPrefix
 		self.GTF = gtf
 		self.polyAResults = polyAResults
 		self.condition1SamplesBAM = "".join(condition1SamplesBAM).replace(" ","").split(",")
 		self.condition2SamplesBAM = "".join(condition2SamplesBAM).replace(" ","").split(",")
+
+		self.condition1Name = condition1Name
+		self.condition2Name = condition2Name
 
 		self.numTop = numTop
 
@@ -92,49 +95,82 @@ class VisualizeTracks:
 
 		fw = open(CONFIG_FILEPATH, 'w')
 
-		for i in range (0, len(condition1SamplesBW)):
-			fw.write("[bigwig control file]\n")
-			fw.write("file = " + condition1SamplesBW[i] + "\n")
+		if (len(condition1SamplesBW) > 4) or (len(condition1SamplesBW) > 4) :
+			for i in range (0, len(condition1SamplesBW)):
+				fw.write("[bigwig control file]\n")
+				fw.write("file = " + condition1SamplesBW[i] + "\n")
+				fw.write("height = 4\n")
+				fw.write("color = green\n")
+				fw.write("nans_to_zeros = true\n")
+				fw.write("summary_method = mean\n")
+				fw.write("show_data_range = true\n")
+				fw.write("alpha = 0.5\n")
+				fw.write("title = Control BigWigs (x"+ str(len(condition1SamplesBW)) +")\n")
+				fw.write("min_value = 0\n")
+				fw.write("overlay_previous = share-y\n")
+				# fw.write("max_value = 0.5\n")
+				
+			fw.write("[spacer]\n")
 			fw.write("height = 4\n")
-			fw.write("color = green\n")
-			fw.write("nans_to_zeros = true\n")
-			fw.write("summary_method = mean\n")
-			fw.write("show_data_range = true\n")
-			fw.write("alpha = 0.5\n")
-			fw.write("title = Control BigWigs (x"+ str(len(condition1SamplesBW)) +")\n")
-			fw.write("min_value = 0\n")
-			fw.write("overlay_previous = share-y\n")
-			fw.write("max_value = 0.5\n")
-			
-		fw.write("[spacer]\n")
-		fw.write("height = 4\n")
 
-		for i in range (0, len(condition2SamplesBW)):
-			fw.write("[bigwig treatment file]\n")
-			fw.write("file = " + condition2SamplesBW[i] + "\n")
-			fw.write("height = 4\n")
-			fw.write("color = red\n")
-			fw.write("nans_to_zeros = true\n")
-			fw.write("summary_method = mean\n")
-			fw.write("show_data_range = true\n")
-			fw.write("alpha = 0.5\n")
-			fw.write("title = Treatment BigWigs (x"+ str(len(condition2SamplesBW)) +")\n")
-			fw.write("min_value = 0\n")
-			fw.write("overlay_previous = share-y\n")
-			fw.write("max_value = 0.5\n")
+			for i in range (0, len(condition2SamplesBW)):
+				fw.write("[bigwig treatment file]\n")
+				fw.write("file = " + condition2SamplesBW[i] + "\n")
+				fw.write("height = 4\n")
+				fw.write("color = red\n")
+				fw.write("nans_to_zeros = true\n")
+				fw.write("summary_method = mean\n")
+				fw.write("show_data_range = true\n")
+				fw.write("alpha = 0.5\n")
+				fw.write("title = Treatment BigWigs (x"+ str(len(condition2SamplesBW)) +")\n")
+				fw.write("min_value = 0\n")
+				fw.write("overlay_previous = share-y\n")
+				# fw.write("max_value = 0.5\n")
+		else:
+			for i in range (0, len(condition1SamplesBW)):
+				fw.write("[bigwig control file]\n")
+				fw.write("file = " + condition1SamplesBW[i] + "\n")
+				fw.write("height = 4\n")
+				fw.write("color = green\n")
+				fw.write("nans_to_zeros = true\n")
+				fw.write("summary_method = mean\n")
+				fw.write("show_data_range = true\n")
+				fw.write("alpha = 0.5\n")
+				fw.write("title = " + self.condition1Name + " BigWig\n")
+				fw.write("min_value = 0\n")
+				# fw.write("overlay_previous = share-y\n")
+				# fw.write("max_value = 0.5\n")
+				
+			# fw.write("[spacer]\n")
+			# fw.write("height = 4\n")
+
+			for i in range (0, len(condition2SamplesBW)):
+				fw.write("[bigwig treatment file]\n")
+				fw.write("file = " + condition2SamplesBW[i] + "\n")
+				fw.write("height = 4\n")
+				fw.write("color = red\n")
+				fw.write("nans_to_zeros = true\n")
+				fw.write("summary_method = mean\n")
+				fw.write("show_data_range = true\n")
+				fw.write("alpha = 0.5\n")
+				fw.write("title = " + self.condition2Name + " BigWig\n")
+				fw.write("min_value = 0\n")
+				# fw.write("overlay_previous = share-y\n")
+				# fw.write("max_value = 0.5\n")
+
 
 		fw.write("[spacer]\n")
 		# fw.write("height = 2\n")
 
 		fw.write("[test gtf collapsed]\n")
 		fw.write("file = " + self.GTF + "\n")
-		fw.write("height = 4\n")
+		fw.write("height = 3\n")
 		fw.write("merge_transcripts = true\n")
-		fw.write("merge_overlapping_exons = true\n")
+		# fw.write("merge_overlapping_exons = true\n")
 		fw.write("color_utr = purple\n")
 		fw.write("labels = true\n")
 		fw.write("height_utr = 0.4\n")
-		fw.write("style = flybase\n")
+		fw.write("style = UCSC\n")
 		fw.write("arrow_interval = 10\n")
 		fw.write("arrowhead_included = true\n")
 		fw.write("gene_rows = 1\n")
@@ -146,21 +182,36 @@ class VisualizeTracks:
 
 		fw.write("[C/PAS BED]\n")
 		fw.write("file = " + self.formattedCPAS_BED_FileLoc + "\n")
-		fw.write("height = 7\n")
-		fw.write("fontsize = 10\n")
+		fw.write("height = 0\n")
+		fw.write("fontsize = 12\n")
 		fw.write("file_type = bed\n")
 		fw.write("merge_transcripts = true\n")
-		fw.write("overlay_previous = yes\n")
+		fw.write("overlay_previous = share-y\n")
 		fw.write("color = #e3dc62\n")
-		fw.write("all_labels_inside = true\n")
+		fw.write("fontstyle = italic\n")
+		fw.write("orientation = inverted\n")
+		fw.write("labels = false\n")
 		fw.write("file_type = bed\n")
 
-		fw.write("[x-axis]\n")
-		fw.write("fontsize = 10\n")
+		fw.write("[Label for C/PAS BED]\n")
+		fw.write("file = " + self.formattedLabeledCPAS_BED_FileLoc + "\n")
+		fw.write("height = 0\n")
+		fw.write("fontsize = 12\n")
+		fw.write("file_type = bed\n")
+		fw.write("merge_transcripts = true\n")
+		# fw.write("overlay_previous = share-y\n")
+		fw.write("color = #FFFFFF\n")
+		fw.write("border_color = #FFFFFF\n")
+		fw.write("fontstyle = italic\n")
+		fw.write("orientation = inverted\n")
+		fw.write("file_type = bed\n")
 
 		fw.write("[vlines]\n")
 		fw.write("file = " + self.formattedCPAS_BED_FileLoc + "\n")
 		fw.write("type = vlines")
+
+		# fw.write("[x-axis]\n")
+		# fw.write("fontsize = 10\n")
 
 		fw.close()
 
@@ -183,7 +234,8 @@ class VisualizeTracks:
 	def _generatePlots(self, resultsDF):
 		for index, row in resultsDF.iterrows():
 			Gene = row["Symbol"]
-			self.formattedCPAS_BED_FileLoc = self.outDir + self.outPrefix + Gene + "_CPASdb.bed"
+			self.formattedCPAS_BED_FileLoc = self.outDir + self.outPrefix + str(Gene) + "_CPASdb.bed"
+			self.formattedLabeledCPAS_BED_FileLoc = self.outDir + self.outPrefix + str(Gene) + "_LabeledCPASdb.bed"
 
 			PolyASiteList = row["PolyASites"].split(",c")
 			regionList = [i.split('@')[0].split('_') for i in PolyASiteList] 
@@ -196,15 +248,19 @@ class VisualizeTracks:
 			strandList = list(list(zip(*regionList))[3])
 			CPAS_BED_DF = pd.DataFrame(list(zip(chrList, startList, endList, featureList, dummyList, strandList)))
 			CPAS_BED_DF.to_csv(self.formattedCPAS_BED_FileLoc, sep = "\t", header = None, index = False)
+
+			CPAS_BED_DF[1] = pd.to_numeric(CPAS_BED_DF[1]) - 160
+			CPAS_BED_DF[2] = pd.to_numeric(CPAS_BED_DF[2]) - 160
+			CPAS_BED_DF.to_csv(self.formattedLabeledCPAS_BED_FileLoc, sep = "\t", header = None, index = False)
 			#Maybe slop CPAS BED by X coordinates on both sides???
 
 			self._makeConfigFile(strand = "forward")
 			self._makeConfigFile(strand = "reverse")
 
-			OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(index+1) + "_" + Gene +".DAG_Track_WholeGeneView.png"
+			OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(index+1) + "_" + str(Gene) +".DAG_Track_WholeGeneView.png"
 			chromosome = CPAS_BED_DF[0][0]
-			start = int(CPAS_BED_DF[1].min()) - 10000
-			end = int(CPAS_BED_DF[2].max()) + 10000
+			start = int(CPAS_BED_DF[1].min()) - 2000
+			end = int(CPAS_BED_DF[2].max()) + 2000
 			strand = CPAS_BED_DF[5][0]
 		
 			if (start > end):
@@ -222,10 +278,10 @@ class VisualizeTracks:
 			os.system(cmd)
 			
 			try:
-				OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(index+1) + "_" + Gene +".DAG_Track_3UTRView.png" 
+				OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(index+1) + "_" + str(Gene) +".DAG_Track_3UTRView.png" 
 				CPAS_BED_DF = CPAS_BED_DF[CPAS_BED_DF[3].str.contains("UTR3") | CPAS_BED_DF[3].str.contains("UN")]
-				start = int(CPAS_BED_DF[1].min()) - 10000
-				end = int(CPAS_BED_DF[2].max()) + 10000
+				start = int(CPAS_BED_DF[1].min()) - 2000
+				end = int(CPAS_BED_DF[2].max()) + 2000
 				if (start > end):
 					temp1 = start
 					temp2 = end
@@ -239,21 +295,21 @@ class VisualizeTracks:
 					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
 				os.system(cmd)
 			except:
-				print(Gene + "has no 3'UTR or UN C/PASs.....")
+				print(str(Gene) + "has no 3'UTR or UN C/PASs.....")
 
 	def visualizeTopDAGs(self):
 		self._convertBam2BW()
 
 		commonBase = self.outDir
 
-		self.outDir = commonBase + "Graphics_PosPolyAIndex/"
-		self._checkDir(self.outDir)
-		resultsDF = self._parseResults(numTop = self.numTop, NegOrPosPolyAIndex = "Positive")
-		self._generatePlots(resultsDF)
-
 		self.outDir = commonBase + "Graphics_NegPolyAIndex/"
 		self._checkDir(self.outDir)
 		resultsDF = self._parseResults(numTop = self.numTop, NegOrPosPolyAIndex = "Negative")
+		self._generatePlots(resultsDF)
+
+		self.outDir = commonBase + "Graphics_PosPolyAIndex/"
+		self._checkDir(self.outDir)
+		resultsDF = self._parseResults(numTop = self.numTop, NegOrPosPolyAIndex = "Positive")
 		self._generatePlots(resultsDF)
 
 def main ():
@@ -267,6 +323,8 @@ def main ():
 	required.add_argument("-polyAResults", help = "PolyAMiner-Bulk Results File", required = "True", type = str)
 	required.add_argument('-c1',help='Comma-separated list of condition1 BAM files in full path format. Index files are also expected', nargs='+',required='True',type=str)
 	required.add_argument('-c2',help='Comma-separated list of condition2 BAM files in full path format. Index files are also expected', nargs='+',required='True',type=str)
+	required.add_argument("-c1Name", help = "Condition 1 Sample Name", type = str, default = "Control")
+	required.add_argument("-c2Name", help = "Condition 2 Sample Name", type = str, default = "Treatment")
 	required.add_argument("-numTop", help = "Number of significant DAGs to visualize", type = int, default = 100)
 
 	args = parser.parse_args()
@@ -279,6 +337,8 @@ def main ():
 		polyAResults = args.polyAResults,
 		condition1SamplesBAM = args.c1,
 		condition2SamplesBAM = args.c2,
+		condition1Name = args.c1Name,
+		condition2Name = args.c2Name,
 		numTop = args.numTop
 		)
 

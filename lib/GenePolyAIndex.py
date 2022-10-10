@@ -27,7 +27,7 @@ def count2proplist(lst):
 
 	return (temp)
 
-def ComputeLengtheningScore(W_g, strand):
+def ComputeLengtheningScoreDeprecated(W_g, strand):
 	vd = np.asarray((np.zeros(shape=(1, W_g.shape[0])))[0])
 	vs = np.asarray((np.zeros(shape=(1, W_g.shape[0])))[0])
 	#for al in range(0,len(vs)):
@@ -65,6 +65,70 @@ def ComputeLengtheningScore(W_g, strand):
 		paindex="-inf"	
 	return (cp, tp, cd, td, paindex)
 
+def ComputeLengtheningScore(W_g, strand, APAsites, optionVectorToZero, optionPAIndexDivideByDenominator):
+	APAsitesdf = pd.DataFrame(APAsites)
+	vd = np.asarray((np.zeros(shape=(1, W_g.shape[0])))[0])
+	vs = np.asarray((np.zeros(shape=(1, W_g.shape[0])))[0])
+
+	# if strand == '+':
+	# 	vs[0] = 1
+	# 	for i in range(1,vs.size):
+	# 		vs[i] = vs[i-1] - 1/(vs.size)
+	# 	vd[-1] = 1
+	# 	for i in range(0,vd.size):
+	# 		if i == 0:
+	# 			vd[i] = 1/(vd.size)
+	# 		else:
+	# 			vd[i] = vd[i-1] + 1/(vd.size)
+	# if strand == '-':
+	# 	vs[-1] = 1
+	# 	for i in range(0,vs.size):
+	# 		if i == 0:
+	# 			vs[i] = 1/(vs.size)
+	# 		else:
+	# 			vs[i] = vs[i-1] + 1/(vs.size)
+	# 	vd[0] = 1
+	# 	for i in range(1,vd.size):
+	# 		vd[i] = vd[i-1] - 1/(vd.size)
+
+	if strand == "+":
+		APAsitesdf[['Chr','Start', "End", "Strand"]] = APAsitesdf[0].str.split('_',expand=True)
+		CPAS_MagnitudeOfLength = abs(int(APAsitesdf["Start"].iat[0]) - int(APAsitesdf["End"].iat[-1]))
+		APAsitesdf["CPAS_Percentile_vd"] = abs(APAsitesdf["End"].astype(float) - float(APAsitesdf["Start"].iat[0])) / CPAS_MagnitudeOfLength
+		APAsitesdf["CPAS_Percentile_vs"] = 1 - abs(APAsitesdf["Start"].astype(float) - float(APAsitesdf["Start"].iat[0])) / CPAS_MagnitudeOfLength
+		vd = APAsitesdf.CPAS_Percentile_vd.tolist()
+		vs = APAsitesdf.CPAS_Percentile_vs.tolist()
+	if strand == "-":
+		APAsitesdf[['Chr','Start', "End", "Strand"]] = APAsitesdf[0].str.split('_',expand=True)
+		CPAS_MagnitudeOfLength = abs(int(APAsitesdf["Start"].iat[0]) - int(APAsitesdf["End"].iat[-1]))
+		APAsitesdf["CPAS_Percentile_vs"] = abs(APAsitesdf["End"].astype(float) - float(APAsitesdf["Start"].iat[0])) / CPAS_MagnitudeOfLength
+		APAsitesdf["CPAS_Percentile_vd"] = 1 - abs(APAsitesdf["Start"].astype(float) - float(APAsitesdf["Start"].iat[0])) / CPAS_MagnitudeOfLength
+		vd = APAsitesdf.CPAS_Percentile_vd.tolist()
+		vs = APAsitesdf.CPAS_Percentile_vs.tolist()
+
+	try:
+		a = count2proplist(list(W_g[:, 0].flat))
+		b = count2proplist(list(W_g[:, 1].flat))
+	except:
+		exit()
+
+	cos_theta_cp = dot(vs, a) / (norm(vs) * norm(a))
+	cos_theta_cd = dot(vd, a) / (norm(vd) * norm(a))
+	cos_theta_tp = dot(vs, b) / (norm(vs) * norm(b))
+	cos_theta_td = dot(vd, b) / (norm(vd) * norm(b))
+	tp = norm(b) * cos_theta_tp
+	cp = norm(a) * cos_theta_cp
+	td = norm(b) * cos_theta_td
+	cd = norm(a) * cos_theta_cd
+	try:
+		paindex = math.log((cp/tp),2)
+		# paindex=math.log((cp/(cp+cd))/(tp/(tp+td)),2)
+	except:
+		paindex = float('-inf')
+	a = ",".join(list(map(str,list(a))))
+	b = ",".join(list(map(str,list(b))))	
+	return (a, b, cp, tp, cd, td, paindex)
+
 def ComputeVectorPro(x):
 	sdf = x[1][x[1]['gene_id'] == x[0]]
 	x[1] = 'NULL'
@@ -77,8 +141,9 @@ def ComputeVectorPro(x):
 		sdf = count2prop(sdf)
 		sdf[np.isnan(sdf)] = 0.0
 		APAmean = np.hstack((sdf[:, 0:x[2]].sum(axis=1, keepdims=1), sdf[:, x[2]:x[2] + x[3]].sum(axis=1, keepdims=1)))
-		CP, TP, CD, TD, PolyAIndex = ComputeLengtheningScore(APAmean, strand)
-		return ([x[0], str(CP), str(TP), str(CD), str(TD), str(PolyAIndex)])
+		#Try 4 iterations: (1) optionVectorToZero=F, optionPAIndexDivideByDenominator=F, (2) optionVectorToZero=F, optionPAIndexDivideByDenominator=T, (3) optionVectorToZero=T, optionPAIndexDivideByDenominator=F, (4) optionVectorToZero=T, optionPAIndexDivideByDenominator=T
+		vector_a, vector_b, CP, TP, CD, TD, PolyAIndex_length = ComputeLengtheningScore(APAmean, strand, APAsites, optionVectorToZero = False, optionPAIndexDivideByDenominator = False)
+		return ([x[0], str(vector_a), str(vector_b), str(CP), str(TP), str(CD), str(TD), str(PolyAIndex_length)])
 			 
 def VectorPro(outDir, fkey, nc, nt, npc, matrix, LS):
 	df = pd.read_csv(matrix, sep='\t', index_col=None)
@@ -101,7 +166,7 @@ def VectorPro(outDir, fkey, nc, nt, npc, matrix, LS):
 		result = list(executor.map(ComputeVectorPro, passlist))
 	result=list(result) 
 	fw = open(outDir + '/' + fkey + '_PolyA-miner.Results.txt', 'w')
-	fw.write('Gene\tCP\tTP\tCD\tTD\tPolyAIndex\n')
+	fw.write('Gene\tVector_a\tVector_b\tCP\tTP\tCD\tTD\tPolyAIndex\n')
 	for p in result:
 		try:
 			fw.write(('\t').join(p) + '\n')

@@ -64,6 +64,13 @@ class CPASBERT:
 		os.system(cmd)
 
 		DENOVOAPASITES_MIDPOINT_BED = self.outDir + self.outPrefix + '_denovoAPAsitesMidpoint.bed'
+		df = pd.read_csv(DENOVOAPASITES_MIDPOINT_BED, sep = "\t", header = None, names = ['Chr', 'Start', 'End', 'gene_id', 'Feature', 'Strand'])
+		# df = df[df["Chr"].str.contains("_")==False]
+		# df = df[df["Chr"].str.contains("chrGL")==False]
+		df_ChromSizes = pd.read_csv(CHROM_SIZES, sep = "\t", header = None)
+		df = df[df['Chr'].isin(df_ChromSizes[0])]
+		df.to_csv(DENOVOAPASITES_MIDPOINT_BED, sep="\t", header=False, index=False)
+
 		cmd = "bedtools slop -i " + DENOVOAPASITES_MIDPOINT_BED + " -g " + CHROM_SIZES + " -b 50 > " + self.DENOVOAPASITES_SEQUENCE_ATLAS
 		print(cmd)
 		os.system(cmd)
@@ -77,8 +84,8 @@ class CPASBERT:
 			try:
 				sequence = f.sequence({'chr': row["Chr"], 'start': row["Start"], 'stop': row["End"], 'strand': row["Strand"]}, one_based = False)
 			except:
-				sequence = "ERROR"
-				print(sequence)
+				sequence = "NOT_FOUND"
+				# print(sequence)
 			sequenceList.append(sequence)
 
 		DENOVOAPASITES_SEQUENCE_ATLAS_DF["Sequence"] = sequenceList
@@ -153,6 +160,14 @@ class CPASBERT:
 		originalSize = len(DENOVOAPASITES_SEQUENCE_ATLAS_DF.index)
 
 		DENOVOAPASITES_SEQUENCE_ATLAS_DF = DENOVOAPASITES_SEQUENCE_ATLAS_DF[DENOVOAPASITES_SEQUENCE_ATLAS_DF['Predictions'] > 0.5]
+
+		DENOVOAPASITES_SEQUENCE_ATLAS_DF["Midpoint"] = DENOVOAPASITES_SEQUENCE_ATLAS_DF[['Start', 'End']].mean(axis=1)
+		DENOVOAPASITES_SEQUENCE_ATLAS_DF['Midpoint'] = DENOVOAPASITES_SEQUENCE_ATLAS_DF['Midpoint'].apply(lambda x: round(x, 0))
+		DENOVOAPASITES_SEQUENCE_ATLAS_DF = DENOVOAPASITES_SEQUENCE_ATLAS_DF.astype({"Midpoint": int})
+		DENOVOAPASITES_SEQUENCE_ATLAS_DF["Start"] = DENOVOAPASITES_SEQUENCE_ATLAS_DF["Midpoint"] - 1
+		DENOVOAPASITES_SEQUENCE_ATLAS_DF["End"] = DENOVOAPASITES_SEQUENCE_ATLAS_DF["Midpoint"]
+		
+		DENOVOAPASITES_SEQUENCE_ATLAS_DF = DENOVOAPASITES_SEQUENCE_ATLAS_DF.drop('Midpoint', axis=1)
 		DENOVOAPASITES_SEQUENCE_ATLAS_DF = DENOVOAPASITES_SEQUENCE_ATLAS_DF.drop('Predictions', axis=1)
 		DENOVOAPASITES_SEQUENCE_ATLAS_DF = DENOVOAPASITES_SEQUENCE_ATLAS_DF.drop('Sequence', axis=1)
 		DENOVOAPASITES_SEQUENCE_ATLAS_DF = DENOVOAPASITES_SEQUENCE_ATLAS_DF.drop('SequenceLen', axis=1)
@@ -164,26 +179,17 @@ class CPASBERT:
 
 		DENOVOAPASITES_SEQUENCE_ATLAS_DF.to_csv(self.DENOVOAPASITES_BED, sep = "\t", index = False, header = None)
 
-	def _makeSAF(self):
-		df = pd.read_csv(self.DENOVOAPASITES_BED, sep='\t', index_col=None, header=None, names=['Chr', 'Start', 'End', 'gene_id', 'Feature', 'Strand'])
-		df = df.drop_duplicates(subset=['Chr', 'Start', 'End', 'Strand'])
-		df['GeneID'] = df['gene_id'] + '@' + df['Chr'] + '_' + df['Start'].apply(str) + '_' + df['End'].apply(str) + '_' + df['Strand']+ '@' + df['Feature']
-		df = df[['GeneID', 'Chr', 'Start', 'End', 'Strand']]
-		df.to_csv(self.outDir + self.outPrefix + '_denovoAPAsites.saf', sep='\t', index=False, header=None)
-
 	def filter_CPAS_Sites(self):
 		self._convertBEDtoSequenceFile()
 		self._convertSequenceFiletoDevFile()
 		self._predict_CPAS_Probabilty()
 		self._createFiltered_CPAS_BED()
-		self._makeSAF()
 
 	def filter_CPAS_Sites_fast(self):
 		self._convertBEDtoSequenceFile()
 		self._convertSequenceFiletoDevFile()
 		self._load_CPAS_Probabilty()
 		self._createFiltered_CPAS_BED()
-		self._makeSAF()
 
 	def _upgradePolyADB(self):
 		df = pd.read_csv(self.POLYADB, sep = "\t")
@@ -416,7 +422,7 @@ class CPASBERT:
 		SequenceBed = SequenceBed.loc[SequenceBed['Strand'] == "+"]
 		SequenceList = SequenceBed.Sequence.values.tolist()
 		LabelList = SequenceBed.Label.values.tolist()
-		SequenceList = SequenceList[0:499]
+		SequenceList = SequenceList[0:300000]
 		print(LabelList[0])
 
 		x = 0
@@ -487,6 +493,10 @@ def main():
 	CPASBERT1.generateAttentionHeatmap(PosLabeledSequenceBedLoc, "PosSequence", cmapPalette = "YlGnBu")
 	# CPASBERT1.trainModel()
 
+	cmd = "python3 /mnt/belinda_local/venkata/data/venkata/DNABERT/motif/find_motifs.py  --min_len 6 --window_size 6  --align_all_ties  --save_file_dir /mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori --predict_dir /mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori  --data_dir /mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori --verbose --min_n_motif 3"
+	print(cmd)
+	os.system(cmd)
+
 if __name__ == "__main__":
-    main()
+	main()
 

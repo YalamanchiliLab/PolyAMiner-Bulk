@@ -11,6 +11,7 @@ import MakeAPAMatrix, GenePolyAIndex, STest, PAusage
 from DEGAnalyzer import DEGAnalyzer
 from ExtractPolyAsites4Bulk import ExtractPolyAsites4Bulk
 from PolyASafety import PolyASafety
+from SoftclippedAssistedFiltering import SoftclippedAssistedFiltering
 
 
 def check_files (checkfiles,logfile):
@@ -61,6 +62,10 @@ def main():
 	optional.add_argument('-mdapa',help='Cluster distance for annotated polyA sites: Merge polyA sites with in this distance. ',type=int, default=0)
 	optional.add_argument('-md',help='Cluster distance for de-novo polyA sites: Merge polyA sites with in this distance',type=int, default=0)
 	optional.add_argument('-anchor',help='Overlap in "bp" for mapping de-novo polyA sites to annotated polyA sites ',type=int, default=1)
+	optional.add_argument('-softclippedNumReads',help='(Param 1 of 2 for Softclipped-Assisted Filter) Minimum # of required softclipped reads',type=int, default=0)
+	optional.add_argument('-softclippedNumSamples',help='(Param 2 of 2 for Softclipped-Assisted Filter) Minimum # of samples that need to meet softclippedNumReads requirement',type=int, default=0)
+	optional.add_argument('-slopDistanceParameter',help='Slop distance parameter',type=int, default = 25)
+	optional.add_argument('-clusterParameter',help='Cluster Parameter',type=int, default = 30)
 	
 	# Additional analysis 
 	optional.add_argument('-cluster_onGenes',help='Cluster samples based on gene counts - all polyA sites / 3utr polyA sites',choices=['all','3utr','none'],type=str,default='none')
@@ -211,7 +216,11 @@ def main():
 		proportionA = "0.90,0.85,0.80,0.75",
 		modelOrganism = args.modelOrganism,
 		apriori_annotations = args.apriori_annotations, 
-		ignoreFeatures = args.ignore
+		ignoreFeatures = args.ignore,
+		slopDistanceParameter = args.slopDistanceParameter,
+		clusterParameter = args.clusterParameter,
+		softclip_numReads = args.softclippedNumReads,
+		softclip_numSamples = args.softclippedNumSamples
 		)
 
 	if args.expNovel == 1:
@@ -222,6 +231,24 @@ def main():
 			logEvent(logfile = logfile, event = "Error in extracting soft-clipped (Poly(A)-Capped) polyadenylation sites")
 			exit()
 	
+
+	###################################
+	# Module 3: Perform Softclipped Assisted Filtering if user specifies >0 values for both softclip_numReads and softclip_numSamples #
+	###################################
+
+	# if (args.softclippedNumReads > 0 and args.softclippedNumSamples > 0):
+	# 	SoftclippedAssistedFiltering1 = SoftclippedAssistedFiltering(outDir = args.o,
+	# 		outPrefix = args.outPrefix,
+	# 		con1BAMFiles = args.c1,
+	# 		con2BAMFiles = args.c2,
+	# 		softclip_numReads = args.softclippedNumReads,
+	# 		softclip_numSamples = args.softclippedNumSamples,
+	# 		clusterParameter = args.clusterParameter,
+	# 		fasta = args.fasta
+	# 		)
+
+		# SoftclippedAssistedFiltering1.performSoftclippedAssistedFiltering()
+		# logEvent(logfile = logfile, event = 'Completed softclipped-assisted filtering')
 
 	###################################
 	# Module 3: Make APA count matrix #

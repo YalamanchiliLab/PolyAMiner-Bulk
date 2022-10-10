@@ -1,4 +1,5 @@
 library(EnhancedVolcano)
+library(plyr)
 
 args<-commandArgs(TRUE)
 
@@ -12,6 +13,8 @@ frame = frame[!duplicated(frame$Gene),]
 # row.names(frame)=frame$Symbol
 rownames(frame) = make.names(frame$Symbol, unique=TRUE)
 
+ylim_mag = max(abs(max(frame$AdjG_Pval)), abs(min(frame$AdjG_Pval)))  + 10
+xlim_mag = max(abs(max(frame$PolyAIndex)), abs(min(frame$PolyAIndex)))  + 2
 
 keyvals <- ifelse(
   frame$AdjG_Pval >0.05, 'grey',
@@ -55,7 +58,7 @@ tiff(paste0(args[2]),width=6, height=7, units='in',res=200)
                 colConnectors = 'black',
                 colCustom=keyvals,
                 ylim=c(0,15),
-                xlim=c(-6,6),
+                xlim=c(-xlim_mag,xlim_mag),
                 #title=args[2],
                 title=args[9],
                 subtitle=paste0("APAs:",args[3]," PAIndex:",args[4]," El:",args[5]," St:",args[6]),
