@@ -12,6 +12,7 @@ from DEGAnalyzer import DEGAnalyzer
 from ExtractPolyAsites4Bulk import ExtractPolyAsites4Bulk
 from PolyASafety import PolyASafety
 from SoftclippedAssistedFiltering import SoftclippedAssistedFiltering
+from VisualizeTracks import VisualizeTracks
 
 
 def check_files (checkfiles,logfile):
@@ -87,6 +88,9 @@ def main():
 	optional.add_argument('-apa_min',help='Min. proportion per APA',type=float, default=0.05)
 	optional.add_argument('-batchCorrection',help='Comma-seperated list of batch membership for ComBat-seq correction',type=str, default='ZZZZZZ')
 	optional.add_argument('-modelOrganism',help='Model organism for CPAS-BERT Model',type=str, default="human")
+	optional.add_argument('-visualizeTopNum',help='Generate read density visualization plots for the top N genes, where N is an integer specified by the user ',type=int, default=0)
+	optional.add_argument('-visualizeCondition1Name',help='Name of Condition 1 when generating read density visualization plots',type=str, default="Control")
+	optional.add_argument('-visualizeCondition2Name',help='Name of Condition 2 when generating read density visualization plots',type=str, default="Treatment")
 
 	#
 	optional.add_argument('-t',help='Statistical Test- BB: for beta-binomial or iNMF: for iterative NMF. For small sample size BB is recommended ',choices=['BB','iNMF'],type=str,default="BB")
@@ -414,6 +418,18 @@ def main():
 	keepFiles = [logfile, DAGresultFile, DEGresultFile, DEGHeatmap, DEGVolcanoPlot, APAFactorHeatmap, APAFactorVolcanoPlot, DAGVolcanoPlot, PA_PCAPlot, PA_tSNEPlot, Gene_PCAPlot, Gene_tSNEPlot, CDS_PAusage, Intron_PAusage, UTR3_PAusage, UTR5_PAusage]
 
 	# PolyASafety1.tidyUp(keep = keepFiles)
+
+	if args.visualizeTopNum > 0:
+		VisualizeTracks1 = VisualizeTracks(outDir = args.o,
+		outPrefix = args.outPrefix,
+		gtf = args.gtf,
+		polyAResults = DAGresultFile,
+		condition1SamplesBAM = args.c1,
+		condition2SamplesBAM = args.c2,
+		condition1Name = args.visualizeCondition1Name,
+		condition2Name = args.visualizeCondition2Name,
+		numTop = args.visualizeTopNum
+		)
 
 	logBook.close()
 
