@@ -3,7 +3,7 @@ import argparse
 import pandas as pd
 
 class VisualizeTracks:
-	def __init__ (self, outDir, outPrefix, gtf, polyAResults, condition1SamplesBAM, condition2SamplesBAM, condition1Name, condition2Name, numTop):
+	def __init__ (self, outDir, outPrefix, gtf, polyAResults, condition1SamplesBAM, condition2SamplesBAM, condition1Name, condition2Name, numTop, verbosePrinting):
 		self.outDir = outDir.rstrip("/")+"/"
 		self.outPrefix = outPrefix
 		self.GTF = gtf
@@ -24,6 +24,8 @@ class VisualizeTracks:
 
 		self.CONFIG_FILEPATH_FORWARD = self.outDir + self.outPrefix + "forward.config.ini"
 		self.CONFIG_FILEPATH_REVERSE = self.outDir + self.outPrefix + "reverse.config.ini"
+
+		self.verbosePrinting = verbosePrinting
 
 	def _checkDir (self, Dir):
 		DirNoSlash = Dir.rstrip("/")
@@ -46,15 +48,17 @@ class VisualizeTracks:
 
 			if os.path.exists(OUTPUT_FORWARD) == False:
 				cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand forward -o "+OUTPUT_FORWARD)
-				print("Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
+				print("# (Condition 1) Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
 				counter += 1
-				print(cmd)
+				if self.verbosePrinting:
+					print(cmd)
 				os.system(cmd)
 			if os.path.exists(OUTPUT_REVERSE) == False: 
 				cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand reverse -o "+OUTPUT_REVERSE)
-				print("Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
+				print("# (Condition 1) Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
 				counter += 1
-				print(cmd)
+				if self.verbosePrinting:
+					print(cmd)	
 				os.system(cmd)
 
 			self.condition1SamplesBW_FORWARD.append(OUTPUT_FORWARD)
@@ -68,15 +72,17 @@ class VisualizeTracks:
 
 			if os.path.exists(OUTPUT_FORWARD) == False:
 				cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand forward -o "+OUTPUT_FORWARD)
-				print("Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
+				print("# (Condition 2) Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
 				counter += 1
-				print(cmd)
+				if self.verbosePrinting:
+					print(cmd)	
 				os.system(cmd)
 			if os.path.exists(OUTPUT_REVERSE) == False: 
 				cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand reverse -o "+OUTPUT_REVERSE)
-				print("Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
+				print("# (Condition 2) Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
 				counter += 1
-				print(cmd)
+				if self.verbosePrinting:
+					print(cmd)
 				os.system(cmd)
 
 			self.condition2SamplesBW_FORWARD.append(OUTPUT_FORWARD)

@@ -54,7 +54,8 @@ def main():
 	required.add_argument('-pa',help='PolyA annotations file standard 6 column bed format',type=str)
 	required.add_argument('-apriori_annotations',help='Use pre-loaded a priori PolyASite 2.0 and PolyADB 3.0 annotations', action=argparse.BooleanOptionalAction)
 	required.add_argument('-paired',help='Sample files are paired (i.e., pre-treatment vs post-treatment) for beta-binomial test', action=argparse.BooleanOptionalAction)
-	required.add_argument('-verboseLogging',help='Enable verbose logging', action=argparse.BooleanOptionalAction)
+	required.add_argument('-verboseLogging',help='Enable verbose logging to output directory', action=argparse.BooleanOptionalAction)
+	required.add_argument('-verbosePrinting',help='Enable verbose printing to terminal', action=argparse.BooleanOptionalAction)
 
 	
 	# Optional #
@@ -277,11 +278,13 @@ def main():
 			DEGMatrixLoc = args.o.rstrip("/")+"/"+args.outPrefix + '_APACountMatrix4DEGs.txt'
 			
 			cmd = "Rscript " + CombatSeqCorrectionRScriptLoc + " " + APAMatrixLoc + " " + args.batchCorrection
-			print(cmd)
+			if args.verbosePrinting:
+				print(cmd)	
 			os.system(cmd)
 
 			cmd = "Rscript " + CombatSeqCorrectionRScriptLoc + " " + DEGMatrixLoc + " " + args.batchCorrection
-			print(cmd)
+			if args.verbosePrinting:
+				print(cmd)
 			os.system(cmd)
 
 			logEvent(logfile = logfile, event = 'Completed performing batch corrections')
@@ -366,12 +369,14 @@ def main():
 	sorteddf=temp2.sort_values(by=['PolyAIndex'])
 	newlist = [x for x in list(sorteddf.head(8)['Gene']) if pd.isnull(x) == False and x != 'nan']
 	x="_".join(newlist)
-	print(x)
+	if args.verbosePrinting:
+		print(x)
 	#print(sorteddf.head(5))
 	#print(sorteddf.tail(5))
 	newlist = [x for x in list(sorteddf.tail(8)['Gene']) if pd.isnull(x) == False and x != 'nan']
 	y="_".join(newlist)
-	print(y)
+	if args.verbosePrinting:
+		print(y)
 	temp3 = data[(data['AdjG_Pval']<=0.05) & (data['PolyAIndex']>=0.5)]
 	temp4 = data[(data['AdjG_Pval']<=0.05) & (data['PolyAIndex']<=-0.5)]
 	#temp3 = data[(data['adj_pvalue']<=0.05) & (data['PolyAIndex']>=0)]
@@ -386,7 +391,8 @@ def main():
 	DAGvolcanoPlotFileName = args.o.rstrip("/")+"/"+args.outPrefix+'_DAGVolcanoPlot.tiff'
 
 	cmd = "Rscript " + DrawDAGVolcanoPlotRScriptLoc + " " + apafile+" "+DAGvolcanoPlotFileName+" "+ndeg+" "+fcdeg+" "+updeg+" "+dndeg+" "+x+" "+y+" "+"DAG_Volcano_Plot"
-	print(cmd)
+	if args.verbosePrinting:
+		print(cmd)
 	os.system(cmd)		
 	
 
@@ -430,7 +436,8 @@ def main():
 		condition2SamplesBAM = args.c2,
 		condition1Name = args.visualizeCondition1Name,
 		condition2Name = args.visualizeCondition2Name,
-		numTop = args.visualizeTopNum
+		numTop = args.visualizeTopNum,
+		verbosePrinting = args.verbosePrinting
 		)
 
 	logBook.close()
