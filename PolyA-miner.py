@@ -424,10 +424,11 @@ def main():
 
 	keepFiles = [logfile, DAGresultFile, DEGresultFile, DEGHeatmap, DEGVolcanoPlot, APAFactorHeatmap, APAFactorVolcanoPlot, DAGVolcanoPlot, PA_PCAPlot, PA_tSNEPlot, Gene_PCAPlot, Gene_tSNEPlot, CDS_PAusage, Intron_PAusage, UTR3_PAusage, UTR5_PAusage]
 
-	if args.verboseLogging == False:
+	if not args.verboseLogging:
 		PolyASafety1.tidyUp(keep = keepFiles)
 
 	if args.visualizeTopNum > 0:
+
 		VisualizeTracks1 = VisualizeTracks(outDir = args.o,
 		outPrefix = args.outPrefix,
 		gtf = args.gtf,
@@ -437,8 +438,11 @@ def main():
 		condition1Name = args.visualizeCondition1Name,
 		condition2Name = args.visualizeCondition2Name,
 		numTop = args.visualizeTopNum,
-		verbosePrinting = args.verbosePrinting
+		verbosePrinting = True,
+		strandedness = args.s
 		)
+
+		VisualizeTracks1.visualizeTopDAGs()
 
 	logBook.close()
 

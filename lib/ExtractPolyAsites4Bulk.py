@@ -141,7 +141,7 @@ class ExtractPolyAsites4Bulk:
 		os.system(cmd)
 
 	def _performSoftClippedAssistedFiltering(self):
-		if self.apriori_annotations == False:
+		if not self.apriori_annotations:
 			self.softclip_numSamples = 1
 			self.softclip_numReads = 1 
 
@@ -239,6 +239,17 @@ class ExtractPolyAsites4Bulk:
 		CPAS_df = CPAS_df[CPAS_df.Cluster.isin(KEEP_CLUSTERID_LIST)]
 		CPAS_df.to_csv(self.CPAS_BED_FILE, sep = "\t", index = None, header = None)
 		BedTool(self.CPAS_BED_FILE).saveas(self.outDir + self.outPrefix + ".concatenated.softclipped_afterSoftClippedAssistedFilteringModule.bed")
+
+		# cmd = "rm " + TMP_BED_FILELOC
+		# print(cmd)
+		# os.system(cmd)
+
+
+
+		# cmd = "mv " + TMP_BED_FILELOC + " " + self.CPAS_BED_FILE
+		# print(cmd)
+		# os.system(cmd)
+
 
 	# Given a BED file, keep only the most proximal read per cluster. Then, extend (or slop) the read by a user-determined distance on both ends. 
 	def _transformCPASBED(self):

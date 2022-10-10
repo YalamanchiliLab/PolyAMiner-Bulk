@@ -3,7 +3,7 @@ import argparse
 import pandas as pd
 
 class VisualizeTracks:
-	def __init__ (self, outDir, outPrefix, gtf, polyAResults, condition1SamplesBAM, condition2SamplesBAM, condition1Name, condition2Name, numTop, verbosePrinting):
+	def __init__ (self, outDir, outPrefix, gtf, polyAResults, condition1SamplesBAM, condition2SamplesBAM, condition1Name, condition2Name, numTop, verbosePrinting, existingBWFolder, strandedness):
 		self.outDir = outDir.rstrip("/")+"/"
 		self.outPrefix = outPrefix
 		self.GTF = gtf
@@ -26,6 +26,9 @@ class VisualizeTracks:
 		self.CONFIG_FILEPATH_REVERSE = self.outDir + self.outPrefix + "reverse.config.ini"
 
 		self.verbosePrinting = verbosePrinting
+		self.existingBWFolder = existingBWFolder.rstrip("/")
+
+		self.strandedness = strandedness
 
 	def _checkDir (self, Dir):
 		DirNoSlash = Dir.rstrip("/")
@@ -33,11 +36,43 @@ class VisualizeTracks:
 			os.system("rm -R " + DirNoSlash)
 		os.system("mkdir " + DirNoSlash)
 
+	def _useExistingBWFolder(self):
+		for file in self.condition1SamplesBAM:
+			BASENAME = os.path.basename(file).replace(".bam",".bw")
+			BASENAME_FORWARD = os.path.basename(file).replace(".bam","_forward_.bw")
+			BASENAME_REVERSE = os.path.basename(file).replace(".bam","_reverse_.bw")
+			
+			if self.strandedness == 0:
+				for file in glob.glob(self.existingBWFolder+"/"+BASENAME):
+					self.condition1SamplesBW_FORWARD.append(file)
+					self.condition1SamplesBW_REVERSE.append(file)
+			else:
+				for file in glob.glob(self.existingBWFolder+"/"+BASENAME_FORWARD):
+					self.condition1SamplesBW_FORWARD.append(file)
+				for file in glob.glob(self.existingBWFolder+"/"+BASENAME_REVERSE):
+					self.condition1SamplesBW_REVERSE.append(file)
+
+		for file in self.condition2SamplesBAM:
+			BASENAME = os.path.basename(file).replace(".bam",".bw")
+			BASENAME_FORWARD = os.path.basename(file).replace(".bam","_forward_.bw")
+			BASENAME_REVERSE = os.path.basename(file).replace(".bam","_reverse_.bw")
+
+			if self.strandedness == 0:
+				for file in glob.glob(self.existingBWFolder+"/"+BASENAME):
+					self.condition1SamplesBW_FORWARD.append(file)
+					self.condition1SamplesBW_REVERSE.append(file)
+			else:
+				for file in glob.glob(self.existingBWFolder+"/"+BASENAME_FORWARD):
+					self.condition2SamplesBW_FORWARD.append(file)
+				for file in glob.glob(self.existingBWFolder+"/"+BASENAME_REVERSE):
+					self.condition2SamplesBW_REVERSE.append(file)
+
 	def _convertBam2BW(self):
 		counter = 1
 		total = (len(self.condition1SamplesBAM) * 2) + (len(self.condition2SamplesBAM)*2)
 
 		for file in self.condition1SamplesBAM:
+			BASENAME = os.path.basename(file).replace(".bam",".bw")
 			BASENAME_FORWARD = os.path.basename(file).replace(".bam","_forward_.bw")
 			BASENAME_REVERSE = os.path.basename(file).replace(".bam","_reverse_.bw")
 			OUTPUT_DIR = self.outDir + "Stranded_BW"
@@ -45,59 +80,100 @@ class VisualizeTracks:
 				os.system("mkdir " + OUTPUT_DIR)
 			OUTPUT_FORWARD = OUTPUT_DIR + "/" + BASENAME_FORWARD
 			OUTPUT_REVERSE = OUTPUT_DIR + "/" + BASENAME_REVERSE
+			OUTPUT = OUTPUT_DIR + "/" + BASENAME
 
-			if os.path.exists(OUTPUT_FORWARD) == False:
-				cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand forward -o "+OUTPUT_FORWARD)
-				print("# (Condition 1) Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
-				counter += 1
-				if self.verbosePrinting:
-					print(cmd)
-				os.system(cmd)
-			if os.path.exists(OUTPUT_REVERSE) == False: 
-				cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand reverse -o "+OUTPUT_REVERSE)
-				print("# (Condition 1) Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
-				counter += 1
-				if self.verbosePrinting:
-					print(cmd)	
-				os.system(cmd)
+			if self.strandedness == 0:
+				if os.path.exists(OUTPUT) == False:
+					cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads -o "+OUTPUT)
+					print("# (Condition 1) Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
+					counter += 1
+					if self.verbosePrinting:
+						print(cmd)
+					os.system(cmd)
 
-			self.condition1SamplesBW_FORWARD.append(OUTPUT_FORWARD)
-			self.condition1SamplesBW_REVERSE.append(OUTPUT_REVERSE)
+				self.condition1SamplesBW_FORWARD.append(OUTPUT)
+				self.condition1SamplesBW_REVERSE.append(OUTPUT)
+
+			else:
+				if os.path.exists(OUTPUT_FORWARD) == False:
+					cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand forward -o "+OUTPUT_FORWARD)
+					print("# (Condition 1) Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
+					counter += 1
+					if self.verbosePrinting:
+						print(cmd)
+					os.system(cmd)
+				if os.path.exists(OUTPUT_REVERSE) == False: 
+					cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand reverse -o "+OUTPUT_REVERSE)
+					print("# (Condition 1) Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
+					counter += 1
+					if self.verbosePrinting:
+						print(cmd)	
+					os.system(cmd)
+				self.condition1SamplesBW_FORWARD.append(OUTPUT_FORWARD)
+				self.condition1SamplesBW_REVERSE.append(OUTPUT_REVERSE)
 
 		for file in self.condition2SamplesBAM:
+			BASENAME = os.path.basename(file).replace(".bam",".bw")
 			BASENAME_FORWARD = os.path.basename(file).replace(".bam","_forward_.bw")
 			BASENAME_REVERSE = os.path.basename(file).replace(".bam","_reverse_.bw")
 			OUTPUT_FORWARD = OUTPUT_DIR + "/" + BASENAME_FORWARD
 			OUTPUT_REVERSE = OUTPUT_DIR + "/" + BASENAME_REVERSE
+			OUTPUT = OUTPUT_DIR + "/" + BASENAME
 
-			if os.path.exists(OUTPUT_FORWARD) == False:
-				cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand forward -o "+OUTPUT_FORWARD)
-				print("# (Condition 2) Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
-				counter += 1
-				if self.verbosePrinting:
-					print(cmd)	
-				os.system(cmd)
-			if os.path.exists(OUTPUT_REVERSE) == False: 
-				cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand reverse -o "+OUTPUT_REVERSE)
-				print("# (Condition 2) Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
-				counter += 1
-				if self.verbosePrinting:
-					print(cmd)
-				os.system(cmd)
+			if self.strandedness == 0:
+				if os.path.exists(OUTPUT) == False:
+					cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads -o "+OUTPUT)
+					print("# (Condition 2) Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
+					counter += 1
+					if self.verbosePrinting:
+						print(cmd)
+					os.system(cmd)
 
-			self.condition2SamplesBW_FORWARD.append(OUTPUT_FORWARD)
-			self.condition2SamplesBW_REVERSE.append(OUTPUT_REVERSE)
+				self.condition2SamplesBW_FORWARD.append(OUTPUT)
+				self.condition2SamplesBW_REVERSE.append(OUTPUT)
 
-	def _makeConfigFile(self, strand):		
-		if (strand == "forward"):
-			CONFIG_FILEPATH = self.CONFIG_FILEPATH_FORWARD
-			condition1SamplesBW = self.condition1SamplesBW_FORWARD
-			condition2SamplesBW = self.condition2SamplesBW_FORWARD
-		
-		elif (strand == "reverse"):
-			CONFIG_FILEPATH = self.CONFIG_FILEPATH_REVERSE
-			condition1SamplesBW = self.condition1SamplesBW_REVERSE
-			condition2SamplesBW = self.condition2SamplesBW_REVERSE
+			else:
+				if os.path.exists(OUTPUT_FORWARD) == False:
+					cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand forward -o "+OUTPUT_FORWARD)
+					print("# (Condition 2) Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
+					counter += 1
+					if self.verbosePrinting:
+						print(cmd)	
+					os.system(cmd)
+				if os.path.exists(OUTPUT_REVERSE) == False: 
+					cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand reverse -o "+OUTPUT_REVERSE)
+					print("# (Condition 2) Converting BAMs to BWs: " +  str(counter) + " of " + str(total))
+					counter += 1
+					if self.verbosePrinting:
+						print(cmd)
+					os.system(cmd)
+
+				self.condition2SamplesBW_FORWARD.append(OUTPUT_FORWARD)
+				self.condition2SamplesBW_REVERSE.append(OUTPUT_REVERSE)
+
+	def _makeConfigFile(self, strand):
+		if self.strandedness == 2:		
+			if (strand == "forward"):
+				CONFIG_FILEPATH = self.CONFIG_FILEPATH_FORWARD
+				condition1SamplesBW = self.condition1SamplesBW_FORWARD
+				condition2SamplesBW = self.condition2SamplesBW_FORWARD
+			
+			elif (strand == "reverse"):
+				CONFIG_FILEPATH = self.CONFIG_FILEPATH_REVERSE
+				condition1SamplesBW = self.condition1SamplesBW_REVERSE
+				condition2SamplesBW = self.condition2SamplesBW_REVERSE
+
+		elif self.strandedness == 1:
+			# print("Using self.strandedness == 1 parameter and reversed forward and reverse BW paths")		
+			if (strand == "forward"):
+				CONFIG_FILEPATH = self.CONFIG_FILEPATH_REVERSE
+				condition1SamplesBW = self.condition1SamplesBW_REVERSE
+				condition2SamplesBW = self.condition2SamplesBW_REVERSE
+			
+			elif (strand == "reverse"):
+				CONFIG_FILEPATH = self.CONFIG_FILEPATH_FORWARD
+				condition1SamplesBW = self.condition1SamplesBW_FORWARD
+				condition2SamplesBW = self.condition2SamplesBW_FORWARD
 
 		fw = open(CONFIG_FILEPATH, 'w')
 
@@ -239,7 +315,7 @@ class VisualizeTracks:
 
 	def _generatePlots(self, resultsDF):
 		for index, row in resultsDF.iterrows():
-			Gene = row["Symbol"]
+			Gene = row["Gene"]
 			self.formattedCPAS_BED_FileLoc = self.outDir + self.outPrefix + str(Gene) + "_CPASdb.bed"
 			self.formattedLabeledCPAS_BED_FileLoc = self.outDir + self.outPrefix + str(Gene) + "_LabeledCPASdb.bed"
 
@@ -277,9 +353,23 @@ class VisualizeTracks:
 			region = chromosome + ":" + str(start) + "-" + str(end)
 			
 			if (strand == "+"):
-				cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+				if (self.strandedness == 1):
+					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+
+				elif (self.strandedness == 2):
+					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+
+				elif (self.strandedness == 0):
+					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
 			elif (strand == "-"):
-				cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+				if (self.strandedness == 1):
+					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+
+				elif (self.strandedness == 2):
+					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+
+				elif (self.strandedness == 0):
+					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
 
 			os.system(cmd)
 			
@@ -296,17 +386,37 @@ class VisualizeTracks:
 				region = chromosome + ":" + str(start) + "-" + str(end)
 
 				if (strand == "+"):
-					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+					if (self.strandedness == 1):
+						cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+
+					elif (self.strandedness == 2):
+						cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+
+					elif (self.strandedness == 0):
+						cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
 				elif (strand == "-"):
-					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+					if (self.strandedness == 1):
+						cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+
+					elif (self.strandedness == 2):
+						cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+
+					elif (self.strandedness == 0):
+						cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+
 				os.system(cmd)
 			except:
 				print(str(Gene) + "has no 3'UTR or UN C/PASs.....")
 
 	def visualizeTopDAGs(self):
-		self._convertBam2BW()
+		if len(self.existingBWFolder) == 0:
+			self._convertBam2BW()
+		else:
+			self._useExistingBWFolder()
 
 		commonBase = self.outDir
+
+		print(self.strandedness)
 
 		self.outDir = commonBase + "Graphics_NegPolyAIndex/"
 		self._checkDir(self.outDir)
@@ -332,6 +442,9 @@ def main ():
 	required.add_argument("-c1Name", help = "Condition 1 Sample Name", type = str, default = "Control")
 	required.add_argument("-c2Name", help = "Condition 2 Sample Name", type = str, default = "Treatment")
 	required.add_argument("-numTop", help = "Number of significant DAGs to visualize", type = int, default = 100)
+	required.add_argument('-existingBWFolder',help='If using existing BW folder, specify location.', type = str, default = "")
+	required.add_argument('-verbosePrinting',help='Enable verbose printing to terminal', action=argparse.BooleanOptionalAction)
+	required.add_argument('-s',help='Strand information 0: un-stranded 1: fwd-strand 2:rev-strand. ',choices=[0,1,2],type=int,default=0)
 
 	args = parser.parse_args()
 	args_dict = vars(args)
@@ -345,7 +458,10 @@ def main ():
 		condition2SamplesBAM = args.c2,
 		condition1Name = args.c1Name,
 		condition2Name = args.c2Name,
-		numTop = args.numTop
+		numTop = args.numTop,
+		existingBWFolder = args.existingBWFolder,
+		verbosePrinting = args.verbosePrinting,
+		strandedness = args.s
 		)
 
 	# VisualizeTracks1 = VisualizeTracks(outDir = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/TEST_VISUALIZATIONS",
@@ -357,6 +473,7 @@ def main ():
 	# 	condition1SamplesBAM = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8169/HZ8169_.sorted.bam,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8170/HZ8170_.sorted.bam,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8171/HZ8171_.sorted.bam",
 	# 	condition2SamplesBAM = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8162/HZ8162_.sorted.bam,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8163/HZ8163_.sorted.bam,/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/BAM/HZ8164/HZ8164_.sorted.bam",
 	# 	numTop = 100
+	# /mnt/localstorage/venkata/data/Project_Wagner_Shervin_PACSEQ_052222/PolyAMiner_Results/October_9_Run/ControlvsSsc_3UTROnly_Run5/Stranded_BW
 	# 	)
 
 	# VisualizeTracks1 = VisualizeTracks(outDir = "/mnt/belinda_local/venkata/data/Project_Meningioma_AkashPatel_NSG/PolyAMiner_Results/SubtypeCvsA_3UTROnly_Run6_Visualizations",
