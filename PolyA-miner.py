@@ -54,6 +54,7 @@ def main():
 	required.add_argument('-pa',help='PolyA annotations file standard 6 column bed format',type=str)
 	required.add_argument('-apriori_annotations',help='Use pre-loaded a priori PolyASite 2.0 and PolyADB 3.0 annotations', action=argparse.BooleanOptionalAction)
 	required.add_argument('-paired',help='Sample files are paired (i.e., pre-treatment vs post-treatment) for beta-binomial test', action=argparse.BooleanOptionalAction)
+	required.add_argument('-verboseLogging',help='Enable verbose logging', action=argparse.BooleanOptionalAction)
 
 	
 	# Optional #
@@ -417,7 +418,8 @@ def main():
 
 	keepFiles = [logfile, DAGresultFile, DEGresultFile, DEGHeatmap, DEGVolcanoPlot, APAFactorHeatmap, APAFactorVolcanoPlot, DAGVolcanoPlot, PA_PCAPlot, PA_tSNEPlot, Gene_PCAPlot, Gene_tSNEPlot, CDS_PAusage, Intron_PAusage, UTR3_PAusage, UTR5_PAusage]
 
-	# PolyASafety1.tidyUp(keep = keepFiles)
+	if args.verboseLogging == False:
+		PolyASafety1.tidyUp(keep = keepFiles)
 
 	if args.visualizeTopNum > 0:
 		VisualizeTracks1 = VisualizeTracks(outDir = args.o,
