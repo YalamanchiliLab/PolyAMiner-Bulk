@@ -11,7 +11,7 @@ frame<-read.table(args[1], header=TRUE, sep="\t")
 frame<-frame[is.finite(frame$PolyAIndex),]
 frame = frame[!duplicated(frame$Gene),]
 # row.names(frame)=frame$Symbol
-rownames(frame) = make.names(frame$Symbol, unique=TRUE)
+rownames(frame) = make.names(frame$Gene, unique=TRUE)
 
 ylim_mag = max(abs(max(frame$AdjG_Pval)), abs(min(frame$AdjG_Pval)))  + 10
 xlim_mag = max(abs(max(frame$PolyAIndex)), abs(min(frame$PolyAIndex)))  + 2
@@ -35,7 +35,7 @@ tiff(paste0(args[2]),width=6, height=7, units='in',res=200)
 #svg(paste0(args[2],"_Vol_0.1.svg"),width = 6, height = 7)
   EnhancedVolcano(frame,
                 #lab = rownames(frame),
-                lab = as.character(frame$Symbol),
+                lab = as.character(frame$Gene),
                 x = 'PolyAIndex',
                 y = 'AdjG_Pval',
                 #selectLab = plab,
