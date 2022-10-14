@@ -1,6 +1,8 @@
 import os, sys, glob
 import argparse
 import pandas as pd
+import pyBigWig
+import numpy as np
 
 class VisualizeTracks:
 	def __init__ (self, outDir, outPrefix, gtf, polyAResults, condition1SamplesBAM, condition2SamplesBAM, condition1Name, condition2Name, numTop, verbosePrinting, existingBWFolder, strandedness):
@@ -151,8 +153,8 @@ class VisualizeTracks:
 				self.condition2SamplesBW_FORWARD.append(OUTPUT_FORWARD)
 				self.condition2SamplesBW_REVERSE.append(OUTPUT_REVERSE)
 
-	def _makeConfigFile(self, strand):
-		if self.strandedness == 2:		
+	def _makeConfigFile(self, strand, chromosome, start, end):
+		if self.strandedness == 2 or self.strandedness == 0:		
 			if (strand == "forward"):
 				CONFIG_FILEPATH = self.CONFIG_FILEPATH_FORWARD
 				condition1SamplesBW = self.condition1SamplesBW_FORWARD
@@ -175,6 +177,85 @@ class VisualizeTracks:
 				condition1SamplesBW = self.condition1SamplesBW_FORWARD
 				condition2SamplesBW = self.condition2SamplesBW_FORWARD
 
+		Con1_MaximumValue = 0
+		value = 0
+		for i in range (0, len(condition1SamplesBW)):
+			bw = pyBigWig.open(condition1SamplesBW[i])
+			value = bw.stats(str(chromosome), int(start), int(end), type = "max", exact = True)
+			bw.close()
+			value = value[0]
+			print(value)
+			print(condition1SamplesBW[i])
+
+			# if (strand == "forward") and (self.strandedness == 2):
+			# 	value = bw.stats(str(chromosome), int(start), int(end), type = "max", exact = True)
+			# elif (strand == "reverse") and (self.strandedness == 1):
+			# 	value = bw.stats(str(chromosome), int(start), int(end), type = "max", exact = True)
+			# elif (strand == "forward") and (self.strandedness == 1):
+			# 	value = bw.stats(str(chromosome), int(end), int(start), type = "max", exact = True)
+			# elif (strand == "reverse") and (self.strandedness == 2):
+			# 	value = bw.stats(str(chromosome), int(end), int(start), type = "max", exact = True)
+			# if value[0] is None:
+			# 	print("EXCEPTION ENCOUNTERED in condition1SamplesBW__________________________________________________")
+			# 	print(bw.values(str(chromosome), int(start), int(end)))
+			# 	exit()
+			# 	value = 0
+			# else:
+			# 	value = value[0]
+			# valueList = bw.values(str(chromosome), int(start), int(end))
+			# value = max(valueList)
+			# print(value)
+			# if value is None:
+			# 	value = 0
+			# else:
+			# 	value = value
+			if value > Con1_MaximumValue:
+				Con1_MaximumValue = value
+
+		print("__________________---------------_________________")
+		Con2_MaximumValue = 0
+		value = 0
+		for i in range (0, len(condition2SamplesBW)):
+			print(condition2SamplesBW[i])
+			bw = pyBigWig.open(condition2SamplesBW[i])
+			value = bw.stats(str(chromosome), int(start), int(end), type = "max", exact = True)
+			bw.close()
+			value = value[0]
+			print(value)
+			
+			# if (strand == "forward") and (self.strandedness == 2):
+			# 	value = bw.stats(str(chromosome), int(start), int(end), type = "max", exact = True)
+			# elif (strand == "reverse") and (self.strandedness == 1):
+			# 	value = bw.stats(str(chromosome), int(start), int(end), type = "max", exact = True)
+			# elif (strand == "reverse") and (self.strandedness == 2):
+			# 	value = bw.stats(str(chromosome), int(end), int(start), type = "max", exact = True)
+			# elif (strand == "forward") and (self.strandedness == 1):
+			# 	value = bw.stats(str(chromosome), int(end), int(start), type = "max", exact = True)
+			# if value[0] is None:
+			# 	print("EXCEPTION ENCOUNTERED in condition2SamplesBW__________________________________________________")
+			# 	print(bw.values(str(chromosome), int(start), int(end)))
+			# 	exit()
+			# 	value = 0
+			# else:
+			# 	value = value[0]
+			# valueList = bw.values(str(chromosome), int(start), int(end))
+			# value = max(valueList)
+			# if value is None:
+			# 	value = 0
+			# else:
+			# 	value = value
+			if value > Con2_MaximumValue:
+				Con2_MaximumValue = value
+
+		print("Condition 1 Maximum value is " + str(Con1_MaximumValue))
+		print("Condition 2 Maximum value is " + str(Con2_MaximumValue))
+		# Con1_MaximumValue = Con1_MaximumValue + 1000
+		# Con2_MaximumValue = Con2_MaximumValue + 1000
+		# print("Condition 1 Maximum value is " + str(Con1_MaximumValue))
+		# print("Condition 2 Maximum value is " + str(Con2_MaximumValue))
+		binRange = int(end) - int(start)
+		# exit()
+
 		fw = open(CONFIG_FILEPATH, 'w')
 
 		if (len(condition1SamplesBW) > 4) or (len(condition1SamplesBW) > 4) :
@@ -185,10 +266,12 @@ class VisualizeTracks:
 				fw.write("color = green\n")
 				fw.write("nans_to_zeros = true\n")
 				fw.write("summary_method = mean\n")
+				# fw.write("number of bins = " + str(binRange) +"\n")
 				fw.write("show_data_range = true\n")
 				fw.write("alpha = 0.5\n")
-				fw.write("title = Control BigWigs (x"+ str(len(condition1SamplesBW)) +")\n")
+				fw.write("title = " + self.condition1Name + " BigWigs (x"+ str(len(condition1SamplesBW)) +")\n")
 				fw.write("min_value = 0\n")
+				fw.write("max_value = " + str(Con1_MaximumValue) + "\n")
 				fw.write("overlay_previous = share-y\n")
 				# fw.write("max_value = 0.5\n")
 				
@@ -202,10 +285,12 @@ class VisualizeTracks:
 				fw.write("color = red\n")
 				fw.write("nans_to_zeros = true\n")
 				fw.write("summary_method = mean\n")
+				# fw.write("number of bins = " + str(binRange) +"\n")
 				fw.write("show_data_range = true\n")
 				fw.write("alpha = 0.5\n")
-				fw.write("title = Treatment BigWigs (x"+ str(len(condition2SamplesBW)) +")\n")
+				fw.write("title = " + self.condition2Name + " BigWigs (x"+ str(len(condition2SamplesBW)) +")\n")
 				fw.write("min_value = 0\n")
+				fw.write("max_value = " + str(Con2_MaximumValue) + "\n")
 				fw.write("overlay_previous = share-y\n")
 				# fw.write("max_value = 0.5\n")
 		else:
@@ -216,6 +301,7 @@ class VisualizeTracks:
 				fw.write("color = green\n")
 				fw.write("nans_to_zeros = true\n")
 				fw.write("summary_method = mean\n")
+				# fw.write("number of bins = " + str(binRange) +"\n")
 				fw.write("show_data_range = true\n")
 				fw.write("alpha = 0.5\n")
 				fw.write("title = " + self.condition1Name + " BigWig\n")
@@ -233,6 +319,7 @@ class VisualizeTracks:
 				fw.write("color = red\n")
 				fw.write("nans_to_zeros = true\n")
 				fw.write("summary_method = mean\n")
+				# fw.write("number of bins = " + str(binRange) +"\n")
 				fw.write("show_data_range = true\n")
 				fw.write("alpha = 0.5\n")
 				fw.write("title = " + self.condition2Name + " BigWig\n")
@@ -315,7 +402,7 @@ class VisualizeTracks:
 
 	def _generatePlots(self, resultsDF):
 		for index, row in resultsDF.iterrows():
-			Gene = row["Gene"]
+			Gene = row["Symbol"]
 			self.formattedCPAS_BED_FileLoc = self.outDir + self.outPrefix + str(Gene) + "_CPASdb.bed"
 			self.formattedLabeledCPAS_BED_FileLoc = self.outDir + self.outPrefix + str(Gene) + "_LabeledCPASdb.bed"
 
@@ -336,9 +423,6 @@ class VisualizeTracks:
 			CPAS_BED_DF.to_csv(self.formattedLabeledCPAS_BED_FileLoc, sep = "\t", header = None, index = False)
 			#Maybe slop CPAS BED by X coordinates on both sides???
 
-			self._makeConfigFile(strand = "forward")
-			self._makeConfigFile(strand = "reverse")
-
 			OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(index+1) + "_" + str(Gene) +".DAG_Track_WholeGeneView.png"
 			chromosome = CPAS_BED_DF[0][0]
 			start = int(CPAS_BED_DF[1].min()) - 2000
@@ -353,6 +437,7 @@ class VisualizeTracks:
 			region = chromosome + ":" + str(start) + "-" + str(end)
 			
 			if (strand == "+"):
+				self._makeConfigFile(strand = "forward", chromosome = chromosome, start = start, end = end)
 				if (self.strandedness == 1):
 					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
 
@@ -362,6 +447,7 @@ class VisualizeTracks:
 				elif (self.strandedness == 0):
 					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
 			elif (strand == "-"):
+				self._makeConfigFile(strand = "reverse", chromosome = chromosome, start = start, end = end)
 				if (self.strandedness == 1):
 					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
 
@@ -415,8 +501,6 @@ class VisualizeTracks:
 			self._useExistingBWFolder()
 
 		commonBase = self.outDir
-
-		print(self.strandedness)
 
 		self.outDir = commonBase + "Graphics_NegPolyAIndex/"
 		self._checkDir(self.outDir)
