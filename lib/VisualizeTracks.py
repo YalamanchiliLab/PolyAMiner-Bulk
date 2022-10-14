@@ -181,11 +181,10 @@ class VisualizeTracks:
 		value = 0
 		for i in range (0, len(condition1SamplesBW)):
 			bw = pyBigWig.open(condition1SamplesBW[i])
-			value = bw.stats(str(chromosome), int(start), int(end), type = "max", exact = True)
+			value = bw.stats(str(chromosome), int(start), int(end), type = "mean", nBins = 700, exact = True)
 			bw.close()
-			value = value[0]
-			print(value)
-			print(condition1SamplesBW[i])
+			value = [0 if v is None else v for v in value]
+			value = max(value)
 
 			# if (strand == "forward") and (self.strandedness == 2):
 			# 	value = bw.stats(str(chromosome), int(start), int(end), type = "max", exact = True)
@@ -211,17 +210,14 @@ class VisualizeTracks:
 			# 	value = value
 			if value > Con1_MaximumValue:
 				Con1_MaximumValue = value
-
-		print("__________________---------------_________________")
 		Con2_MaximumValue = 0
 		value = 0
 		for i in range (0, len(condition2SamplesBW)):
-			print(condition2SamplesBW[i])
 			bw = pyBigWig.open(condition2SamplesBW[i])
-			value = bw.stats(str(chromosome), int(start), int(end), type = "max", exact = True)
+			value = bw.stats(str(chromosome), int(start), int(end), type = "mean", nBins = 700, exact = True)
 			bw.close()
-			value = value[0]
-			print(value)
+			value = [0 if v is None else v for v in value]
+			value = max(value)
 			
 			# if (strand == "forward") and (self.strandedness == 2):
 			# 	value = bw.stats(str(chromosome), int(start), int(end), type = "max", exact = True)
@@ -249,8 +245,8 @@ class VisualizeTracks:
 
 		print("Condition 1 Maximum value is " + str(Con1_MaximumValue))
 		print("Condition 2 Maximum value is " + str(Con2_MaximumValue))
-		# Con1_MaximumValue = Con1_MaximumValue + 1000
-		# Con2_MaximumValue = Con2_MaximumValue + 1000
+		# Con1_MaximumValue = Con1_MaximumValue * 2 
+		# Con2_MaximumValue = Con2_MaximumValue * 2
 		# print("Condition 1 Maximum value is " + str(Con1_MaximumValue))
 		# print("Condition 2 Maximum value is " + str(Con2_MaximumValue))
 		binRange = int(end) - int(start)
@@ -258,7 +254,7 @@ class VisualizeTracks:
 
 		fw = open(CONFIG_FILEPATH, 'w')
 
-		if (len(condition1SamplesBW) > 4) or (len(condition1SamplesBW) > 4) :
+		if (len(condition1SamplesBW) > 4) or (len(condition2SamplesBW) > 4) :
 			for i in range (0, len(condition1SamplesBW)):
 				fw.write("[bigwig control file]\n")
 				fw.write("file = " + condition1SamplesBW[i] + "\n")
@@ -272,11 +268,12 @@ class VisualizeTracks:
 				fw.write("title = " + self.condition1Name + " BigWigs (x"+ str(len(condition1SamplesBW)) +")\n")
 				fw.write("min_value = 0\n")
 				fw.write("max_value = " + str(Con1_MaximumValue) + "\n")
-				fw.write("overlay_previous = share-y\n")
+				if i != 0:
+					fw.write("overlay_previous = share-y\n")
 				# fw.write("max_value = 0.5\n")
-				
-			fw.write("[spacer]\n")
-			fw.write("height = 4\n")
+
+			# fw.write("[spacer]\n")
+			# fw.write("height = 4\n")
 
 			for i in range (0, len(condition2SamplesBW)):
 				fw.write("[bigwig treatment file]\n")
@@ -291,7 +288,8 @@ class VisualizeTracks:
 				fw.write("title = " + self.condition2Name + " BigWigs (x"+ str(len(condition2SamplesBW)) +")\n")
 				fw.write("min_value = 0\n")
 				fw.write("max_value = " + str(Con2_MaximumValue) + "\n")
-				fw.write("overlay_previous = share-y\n")
+				if i != 0:
+					fw.write("overlay_previous = share-y\n")
 				# fw.write("max_value = 0.5\n")
 		else:
 			for i in range (0, len(condition1SamplesBW)):
