@@ -255,6 +255,8 @@ class ExtractPolyAsites4Bulk:
 	def _transformCPASBED(self):
 		#Keep only the most proximal read per cluster
 		CPAS_df = pd.read_csv(self.CPAS_BED_FILE, sep = "\t", header = None, names = ["Chr", "Start", "End", "Feature", "Feature2", "Strand", "Cluster"])
+		#Below is a modification that I made on 10.14.22
+		CPAS_df = CPAS_df[~CPAS_df.Chr.str.contains(" ")].reset_index(drop=True)
 		Filtered_DF_posStrand = CPAS_df.query('Strand == "+"').reset_index(drop=True)
 		Filtered_DF_negStrand = CPAS_df.query('Strand == "-"').reset_index(drop=True)
 		Filtered_DF_posStrand = Filtered_DF_posStrand.loc[Filtered_DF_posStrand.groupby('Cluster').Start.idxmin()]
@@ -535,6 +537,7 @@ class ExtractPolyAsites4Bulk:
 		# Given a BED file, keep only the most proximal read per cluster. Then, extend (or slop) the read by a user-determined distance on both ends. 
 		self._transformCPASBED()
 
+		# exit()
 		# Given a BED file of the desired C/PAS coordinates, annotate C/PAS coordinate BED File with gene name and features. 
 		self._annotateCPASBED()
 		BedTool(self.CPAS_BED_FILE).saveas(self.outDir + self.outPrefix + ".concatenated.softclipped_AfterAnnotations.bed")
