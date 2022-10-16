@@ -401,6 +401,8 @@ class VisualizeTracks:
 	def _generatePlots(self, resultsDF):
 		for index, row in resultsDF.iterrows():
 			Gene = row["Symbol"]
+			if str(Gene) == "nan":
+				Gene = row["Gene"]
 			self.formattedCPAS_BED_FileLoc = self.outDir + self.outPrefix + str(Gene) + "_CPASdb.bed"
 			self.formattedLabeledCPAS_BED_FileLoc = self.outDir + self.outPrefix + str(Gene) + "_LabeledCPASdb.bed"
 

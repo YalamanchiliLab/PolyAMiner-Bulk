@@ -145,6 +145,7 @@ class DEGAnalyzer:
 
 		if OverallDEGResultsDF.empty:
 			print("Dataset not sufficient depth")
+			exit()
 			return False
 
 		return True
