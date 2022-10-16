@@ -425,6 +425,8 @@ def main():
 	keepFiles = [logfile, DAGresultFile, DEGresultFile, DEGHeatmap, DEGVolcanoPlot, APAFactorHeatmap, APAFactorVolcanoPlot, DAGVolcanoPlot, PA_PCAPlot, PA_tSNEPlot, Gene_PCAPlot, Gene_tSNEPlot, CDS_PAusage, Intron_PAusage, UTR3_PAusage, UTR5_PAusage]
 
 	if not args.verboseLogging:
+		print(args.verboseLogging)
+		print("Verbose logging option not selected")
 		PolyASafety1.tidyUp(keep = keepFiles)
 
 	if args.visualizeTopNum > 0:

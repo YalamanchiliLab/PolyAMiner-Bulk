@@ -37,6 +37,8 @@ res <- res.geno[order(res.geno$padj), ]
 ## Merge with normalized count data
 resdata <- merge(as.data.frame(res), as.data.frame(counts(dds, normalized=TRUE)), by="row.names", sort=FALSE)
 names(resdata)[1] <- "Gene"
+# print(resdata, nrow = 10)
+# names(resdata)[1] <- "Symbol"
 
 #Write results
 # write.csv(resdata, file=paste0(argsv[3],"_DEG-results.txt"),row.names=F)

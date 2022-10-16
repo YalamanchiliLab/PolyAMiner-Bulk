@@ -123,10 +123,23 @@ class DEGAnalyzer:
 		OverallDEGResultsDF = OverallDEGResultsDF[OverallDEGResultsDF['Gene'].isin(Ensembl_Human_APAFactorList)]
 
 		if OverallDEGResultsDF.empty:
+			print("Entered filtering overall DEG Results by ensemble mouse APA Factor List")
 			OverallDEGResultsDF = pd.read_csv(self.OVERALL_DESEQ2_RESULTS_FILE, sep = "\t")
 			OverallDEGResultsDF['Gene'] = OverallDEGResultsDF.Gene.map(lambda x: x[0: x.find('.')] if '.' in x else x)
 			Ensembl_Mouse_APAFactorList = ["ENSMUSG00000034022", "ENSMUSG00000041781", "ENSMUSG00000054309", "ENSMUSG00000029625","ENSMUSG00000024400", "ENSMUSG00000029227", "ENSMUSG00000027498", "ENSMUSG00000031256", "ENSMUSG00000053536", "ENSMUSG00000027176", "ENSMUSG00000031754", "ENSMUSG00000034820", "ENSMUSG00000055531", "ENSMUSG00000023118", "ENSMUSG00000041328", "ENSMUSG00000027079", "ENSMUSG00000021111", "ENSMUSG00000020273", "ENSMUSG00000040385", "ENSMUSG00000014956", "ENSMUSG00000022283", "ENSMUSG00000011257", "ENSMUSG00000030779", "ENSMUSG00000022194"]
 			OverallDEGResultsDF = OverallDEGResultsDF[OverallDEGResultsDF['Gene'].isin(Ensembl_Mouse_APAFactorList)]
+		if OverallDEGResultsDF.empty:
+			print("Entered filtering overall DEG Results by symbol mouse APA Factor List")
+			OverallDEGResultsDF = pd.read_csv(self.OVERALL_DESEQ2_RESULTS_FILE, sep = "\t")
+			OverallDEGResultsDF['Gene'] = OverallDEGResultsDF.Gene.map(lambda x: x[0: x.find('.')] if '.' in x else x)
+			Symbol_Mouse_APAFactorList = ["Cpsf1", "Cpsf2", "Cpsf3", "Cpsf4", "Wdr33", "Fip1l1", "Cstf1", "Cstf2", "Cstf2t", "Cstf3", "Nudt21", "Cpsf7", "Cpsf6", "Sympk", "Pcf11", "Clp1" "Papola", "Papolg", "Ppp1ca", "Ppp1cb", "Pabpc1", "Pabpc4", "Rbbp6", "Pabpn1"]
+			OverallDEGResultsDF = OverallDEGResultsDF[OverallDEGResultsDF['Gene'].isin(Symbol_Mouse_APAFactorList)]
+		if OverallDEGResultsDF.empty:
+			print("Entered filtering overall DEG Results by symbol human APA Factor List")
+			OverallDEGResultsDF = pd.read_csv(self.OVERALL_DESEQ2_RESULTS_FILE, sep = "\t")
+			OverallDEGResultsDF['Gene'] = OverallDEGResultsDF.Gene.map(lambda x: x[0: x.find('.')] if '.' in x else x)
+			Symbol_Human_APAFactorList = ["CPSF1", "CPSF2", "CPSF3", "CPSF4", "WDR33", "FIP1L1", "CSTF1", "CSTF2", "CSTF2T", "CSTF3", "NUDT21", "CPSF7", "CPSF6", "SYMPK", "PCF11", "CLP1", "PAPOLA", "PAPOLG", "PPP1CA", "PPP1CB", "PABPC1", "PABPC4", "RBBP6", "PABPN1"]
+			OverallDEGResultsDF = OverallDEGResultsDF[OverallDEGResultsDF['Gene'].isin(Symbol_Human_APAFactorList)]
 
 		OverallDEGResultsDF.to_csv(self.APAFACTOR_DESEQ2_RESULTS_FILE, index=False, sep ="\t")
 
