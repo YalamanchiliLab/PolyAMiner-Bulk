@@ -56,6 +56,7 @@ def main():
 	required.add_argument('-paired',help='Sample files are paired (i.e., pre-treatment vs post-treatment) for beta-binomial test', action=argparse.BooleanOptionalAction)
 	required.add_argument('-verboseLogging',help='Enable verbose logging to output directory', action=argparse.BooleanOptionalAction)
 	required.add_argument('-verbosePrinting',help='Enable verbose printing to terminal', action=argparse.BooleanOptionalAction)
+	required.add_argument('-noDEGAnalyzer',help='Disable DEG analysis', action=argparse.BooleanOptionalAction)
 
 	
 	# Optional #
@@ -297,9 +298,10 @@ def main():
 	# Module 3.5: RUN DEG ANALYSIS #
 	################################
 
-	DEGAnalyzer1 = DEGAnalyzer(outDir = args.o, outPrefix = args.outPrefix, bed = args.bed, gtf = args.gtf, condition1Samples = args.c1, condition2Samples = args.c2)
-	DEGAnalyzer1.clusterAndAnalyzeDEGs()
-	logEvent(logfile = logfile, event = 'Completed DEG (Overall and Core APA Factor) Analysis')
+	if not args.noDEGAnalyzer:
+		DEGAnalyzer1 = DEGAnalyzer(outDir = args.o, outPrefix = args.outPrefix, bed = args.bed, gtf = args.gtf, condition1Samples = args.c1, condition2Samples = args.c2)
+		DEGAnalyzer1.clusterAndAnalyzeDEGs()
+		logEvent(logfile = logfile, event = 'Completed DEG (Overall and Core APA Factor) Analysis')
 	
 	###################################
 	# Module 4: Gene level PolyA Index 
@@ -363,6 +365,10 @@ def main():
 	#Create APA Volcano Plot
 	apafile = args.o.rstrip("/")+"/"+args.outPrefix+'_PolyA-miner.Results.txt'
 	data=pd.read_csv(apafile,sep="\t",header=0,index_col=None)
+
+	if nc + nt == 2:
+		data['AdjG_Pval'] = data['G_Pval']
+		data.to_csv(apafile, sep = "\t", index = None)
 
 	temp1 = data[data['AdjG_Pval']<=0.05]
 	temp2 = data[(data['AdjG_Pval']<=0.05) & ((data['PolyAIndex']>=0.5) | (data['PolyAIndex']<=-0.5))]

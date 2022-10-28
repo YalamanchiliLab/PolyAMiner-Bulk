@@ -37,6 +37,9 @@ cd PolyAMiner-Bulk
 python3 -m pip install -r requirements.txt
 ```
 
+BiocManager::install("sva")
+
+
 ## Step 2: Download trained ML-models + ML-dependencies + necessary reference files
 
 ### 2.1: Download "6-new-12w-0" from https://bcm.box.com/s/1lo85ig6eop2a5e12d52ytd6q98fg4xa and extract it into the /lib folder
