@@ -5,7 +5,7 @@ import pyBigWig
 import numpy as np
 
 class VisualizeTracks:
-	def __init__ (self, outDir, outPrefix, gtf, polyAResults, condition1SamplesBAM, condition2SamplesBAM, condition1Name, condition2Name, numTop, verbosePrinting, existingBWFolder, strandedness):
+	def __init__ (self, outDir, outPrefix, gtf, polyAResults, condition1SamplesBAM, condition2SamplesBAM, condition1Name, condition2Name, numTop, verbosePrinting, existingBWFolder, strandedness, gene):
 		self.outDir = outDir.rstrip("/")+"/"
 		self.outPrefix = outPrefix
 		self.GTF = gtf
@@ -31,6 +31,8 @@ class VisualizeTracks:
 		self.existingBWFolder = existingBWFolder.rstrip("/")
 
 		self.strandedness = strandedness
+
+		self.gene = gene
 
 	def _checkDir (self, Dir):
 		DirNoSlash = Dir.rstrip("/")
@@ -398,6 +400,11 @@ class VisualizeTracks:
 
 		return resultsDF
 
+	def _parseResults4Gene(self, gene):
+		resultsDF = pd.read_csv(self.polyAResults, sep = "\t")
+		resultsDF = resultsDF[resultsDF['Gene'] == gene]
+		return resultsDF
+
 	def _generatePlots(self, resultsDF):
 		for index, row in resultsDF.iterrows():
 			Gene = row["Symbol"]
@@ -501,16 +508,21 @@ class VisualizeTracks:
 			self._useExistingBWFolder()
 
 		commonBase = self.outDir
+		if len(self.gene) > 0:
+			self.outDir = commonBase + "Specified_Gene/"
+			self._checkDir(self.outDir)
+			resultsDF = self._parseResults4Gene(gene = self.gene)
+			self._generatePlots(resultsDF)
+		else:
+			self.outDir = commonBase + "Graphics_NegPolyAIndex/"
+			self._checkDir(self.outDir)
+			resultsDF = self._parseResults(numTop = self.numTop, NegOrPosPolyAIndex = "Negative")
+			self._generatePlots(resultsDF)
 
-		self.outDir = commonBase + "Graphics_NegPolyAIndex/"
-		self._checkDir(self.outDir)
-		resultsDF = self._parseResults(numTop = self.numTop, NegOrPosPolyAIndex = "Negative")
-		self._generatePlots(resultsDF)
-
-		self.outDir = commonBase + "Graphics_PosPolyAIndex/"
-		self._checkDir(self.outDir)
-		resultsDF = self._parseResults(numTop = self.numTop, NegOrPosPolyAIndex = "Positive")
-		self._generatePlots(resultsDF)
+			self.outDir = commonBase + "Graphics_PosPolyAIndex/"
+			self._checkDir(self.outDir)
+			resultsDF = self._parseResults(numTop = self.numTop, NegOrPosPolyAIndex = "Positive")
+			self._generatePlots(resultsDF)
 
 def main ():
 	parser = argparse.ArgumentParser(description='''PolyAMiner-Bulk Visualization Module: Visualize PolyAMiner-Bulk Results - Venkata Jonnakuti et al., \n''',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -529,6 +541,7 @@ def main ():
 	required.add_argument('-existingBWFolder',help='If using existing BW folder, specify location.', type = str, default = "")
 	required.add_argument('-verbosePrinting',help='Enable verbose printing to terminal', action=argparse.BooleanOptionalAction)
 	required.add_argument('-s',help='Strand information 0: un-stranded 1: fwd-strand 2:rev-strand. ',choices=[0,1,2],type=int,default=0)
+	required.add_argument('-gene',help='Specify specific gene ',type=str,default="")
 
 	args = parser.parse_args()
 	args_dict = vars(args)
@@ -545,7 +558,8 @@ def main ():
 		numTop = args.numTop,
 		existingBWFolder = args.existingBWFolder,
 		verbosePrinting = args.verbosePrinting,
-		strandedness = args.s
+		strandedness = args.s,
+		gene = args.gene
 		)
 
 	# VisualizeTracks1 = VisualizeTracks(outDir = "/mnt/belinda_local/venkata/data/Project_Human_RBM17_HEK/TEST_VISUALIZATIONS",
