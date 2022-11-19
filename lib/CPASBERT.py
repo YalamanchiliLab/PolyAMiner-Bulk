@@ -487,10 +487,10 @@ def main():
 
 
 	NegLabeledSequenceBedLoc = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori/Human_hg38_NegLabeledSequence.bed"
-	CPASBERT1.generateAttentionHeatmap(NegLabeledSequenceBedLoc, "NegSequence", cmapPalette = "YlOrRd")
+	# CPASBERT1.generateAttentionHeatmap(NegLabeledSequenceBedLoc, "NegSequence", cmapPalette = "YlOrRd")
 
 	PosLabeledSequenceBedLoc = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori/Human_hg38_PosLabeledSequence.bed"
-	CPASBERT1.generateAttentionHeatmap(PosLabeledSequenceBedLoc, "PosSequence", cmapPalette = "YlGnBu")
+	# CPASBERT1.generateAttentionHeatmap(PosLabeledSequenceBedLoc, "PosSequence", cmapPalette = "YlGnBu")
 	# CPASBERT1.trainModel()
 
 	cmd = "python3 /mnt/belinda_local/venkata/data/venkata/DNABERT/motif/find_motifs.py  --min_len 6 --window_size 6  --align_all_ties  --save_file_dir /mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori --predict_dir /mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori  --data_dir /mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori --verbose --min_n_motif 3"

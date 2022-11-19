@@ -3,18 +3,26 @@ import argparse
 import pandas as pd
 import pyBigWig
 import numpy as np
+import seaborn as sns 
+import matplotlib.pylab as plt
+import os.path
 
 class VisualizeTracks:
-	def __init__ (self, outDir, outPrefix, gtf, polyAResults, condition1SamplesBAM, condition2SamplesBAM, condition1Name, condition2Name, numTop, verbosePrinting, existingBWFolder, strandedness, gene):
+	def __init__ (self, outDir, outPrefix, gtf, polyAResults, polyACountMatrix, condition1SamplesBAM, condition2SamplesBAM, condition1Name, condition2Name, condition1NameHeatmap, condition2NameHeatmap, numTop, verbosePrinting, existingBWFolder, strandedness, gene):
 		self.outDir = outDir.rstrip("/")+"/"
 		self.outPrefix = outPrefix
 		self.GTF = gtf
 		self.polyAResults = polyAResults
+		self.polyACountMatrix = polyACountMatrix
+		self.condition1SamplesBAMOriginal = condition1SamplesBAM
+		self.condition2SamplesBAMOriginal = condition2SamplesBAM
 		self.condition1SamplesBAM = "".join(condition1SamplesBAM).replace(" ","").split(",")
 		self.condition2SamplesBAM = "".join(condition2SamplesBAM).replace(" ","").split(",")
 
 		self.condition1Name = condition1Name
 		self.condition2Name = condition2Name
+		self.condition1NameHeatmap = condition1NameHeatmap 
+		self.condition2NameHeatmap = condition2NameHeatmap
 
 		self.numTop = numTop
 
@@ -410,6 +418,7 @@ class VisualizeTracks:
 			Gene = row["Symbol"]
 			if str(Gene) == "nan":
 				Gene = row["Gene"]
+			self.APAHeatmap = self.outDir + self.outPrefix + str(Gene) + "_Heatmap.png"
 			self.formattedCPAS_BED_FileLoc = self.outDir + self.outPrefix + str(Gene) + "_CPASdb.bed"
 			self.formattedLabeledCPAS_BED_FileLoc = self.outDir + self.outPrefix + str(Gene) + "_LabeledCPASdb.bed"
 
@@ -442,6 +451,53 @@ class VisualizeTracks:
 				end = temp1
 				start = temp2
 			region = chromosome + ":" + str(start) + "-" + str(end)
+
+			if os.path.isfile(self.polyACountMatrix):
+				countMatrix = pd.read_csv(self.polyACountMatrix, sep = "\t")
+				if (strand == "-"):
+					countMatrix = countMatrix.loc[::-1].reset_index(drop=True)
+				countMatrix = countMatrix.loc[countMatrix['gene_id'] == Gene]
+				condition1Index = 1
+				condition2Index = 1
+				newColumnList = []
+				for column in countMatrix.columns:
+					if column in self.condition1SamplesBAMOriginal[0]:
+						name = self.condition1NameHeatmap+"_"+str(condition1Index)
+						condition1Index += 1
+					elif column in self.condition2SamplesBAMOriginal[0]:
+						name = self.condition2NameHeatmap+"_"+str(condition2Index)
+						condition2Index += 1
+					else:
+						name = column
+					newColumnList.append(name)
+
+				countMatrix.columns = newColumnList
+				countMatrix = countMatrix.reset_index()
+				countMatrix = countMatrix.iloc[: , 3:]
+
+				indexList = []
+				for index,row in countMatrix.iterrows():
+					indexList.append("C/PAS_"+str(index+1))
+
+				countMatrix.index = indexList
+
+				for label,content in countMatrix.items():
+					sumLabel = sum(content)
+					for index, row in countMatrix.iterrows():
+						countMatrix.at[index, label] = countMatrix.at[index, label] / sumLabel
+
+				plt.figure(figsize=(10, 16))
+				# customPalette = sns.color_palette("ch:start=.2,rot=-.3", as_cmap=True)
+				customPalette = sns.light_palette("seagreen", as_cmap=True)
+				# customPalette = sns.dark_palette("#69d", reverse=True, as_cmap=True)
+				ax = sns.heatmap(countMatrix, linewidth=0.5, annot = True, square = True, cbar = False, cmap = customPalette, annot_kws={"fontsize":15})
+				ax.axes.xaxis.set_ticks_position("top")
+				ax.yaxis.set_tick_params(labelsize = 15)
+				ax.xaxis.set_tick_params(labelsize = 15)
+				# plt.show()
+				plt.savefig(self.APAHeatmap)
+			else:
+				print("Couldn't find polyACountMatrix file...skipping...")
 			
 			if (strand == "+"):
 				self._makeConfigFile(strand = "forward", chromosome = chromosome, start = start, end = end)
@@ -499,7 +555,7 @@ class VisualizeTracks:
 
 				os.system(cmd)
 			except:
-				print(str(Gene) + "has no 3'UTR or UN C/PASs.....")
+				print(str(Gene) + " has no 3'UTR or UN C/PASs.....")
 
 	def visualizeTopDAGs(self):
 		if len(self.existingBWFolder) == 0:
@@ -533,10 +589,13 @@ def main ():
 	required.add_argument("-outPrefix", help = 'Output file/s prefix', default = "PolyAminer_Out", type = str)
 	required.add_argument('-gtf',help = 'Reference gtf file',required = 'True', type = str)
 	required.add_argument("-polyAResults", help = "PolyAMiner-Bulk Results File", required = "True", type = str)
+	required.add_argument("-polyACountMatrix", help = "PolyAMiner-Bulk GFil.PA.PR Count Matrix File", type = str, default = "")
 	required.add_argument('-c1',help='Comma-separated list of condition1 BAM files in full path format. Index files are also expected', nargs='+',required='True',type=str)
 	required.add_argument('-c2',help='Comma-separated list of condition2 BAM files in full path format. Index files are also expected', nargs='+',required='True',type=str)
 	required.add_argument("-c1Name", help = "Condition 1 Sample Name", type = str, default = "Control")
 	required.add_argument("-c2Name", help = "Condition 2 Sample Name", type = str, default = "Treatment")
+	required.add_argument("-c1NameHeatmap", help = "Condition 1 Sample Name", type = str, default = "CR")
+	required.add_argument("-c2NameHeatmap", help = "Condition 2 Sample Name", type = str, default = "TR")
 	required.add_argument("-numTop", help = "Number of significant DAGs to visualize", type = int, default = 100)
 	required.add_argument('-existingBWFolder',help='If using existing BW folder, specify location.', type = str, default = "")
 	required.add_argument('-verbosePrinting',help='Enable verbose printing to terminal', action=argparse.BooleanOptionalAction)
@@ -551,10 +610,13 @@ def main ():
 		outPrefix = args.outPrefix,
 		gtf = args.gtf,
 		polyAResults = args.polyAResults,
+		polyACountMatrix = args.polyACountMatrix,
 		condition1SamplesBAM = args.c1,
 		condition2SamplesBAM = args.c2,
 		condition1Name = args.c1Name,
 		condition2Name = args.c2Name,
+		condition1NameHeatmap = args.c1NameHeatmap,
+		condition2NameHeatmap = args.c2NameHeatmap,
 		numTop = args.numTop,
 		existingBWFolder = args.existingBWFolder,
 		verbosePrinting = args.verbosePrinting,
