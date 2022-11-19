@@ -415,10 +415,11 @@ class VisualizeTracks:
 
 	def _generatePlots(self, resultsDF):
 		for index, row in resultsDF.iterrows():
+			printIndex = index
 			Gene = row["Symbol"]
 			if str(Gene) == "nan":
 				Gene = row["Gene"]
-			self.APAHeatmap = self.outDir + self.outPrefix + str(Gene) + "_Heatmap.png"
+			self.APAHeatmap = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) + "_Heatmap.png"
 			self.formattedCPAS_BED_FileLoc = self.outDir + self.outPrefix + str(Gene) + "_CPASdb.bed"
 			self.formattedLabeledCPAS_BED_FileLoc = self.outDir + self.outPrefix + str(Gene) + "_LabeledCPASdb.bed"
 
@@ -439,7 +440,7 @@ class VisualizeTracks:
 			CPAS_BED_DF.to_csv(self.formattedLabeledCPAS_BED_FileLoc, sep = "\t", header = None, index = False)
 			#Maybe slop CPAS BED by X coordinates on both sides???
 
-			OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(index+1) + "_" + str(Gene) +".DAG_Track_WholeGeneView.png"
+			OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) +".DAG_Track_WholeGeneView.png"
 			chromosome = CPAS_BED_DF[0][0]
 			start = int(CPAS_BED_DF[1].min()) - 2000
 			end = int(CPAS_BED_DF[2].max()) + 2000
@@ -523,7 +524,7 @@ class VisualizeTracks:
 			os.system(cmd)
 			
 			try:
-				OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(index+1) + "_" + str(Gene) +".DAG_Track_3UTRView.png" 
+				OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) +".DAG_Track_3UTRView.png" 
 				CPAS_BED_DF = CPAS_BED_DF[CPAS_BED_DF[3].str.contains("UTR3") | CPAS_BED_DF[3].str.contains("UN")]
 				start = int(CPAS_BED_DF[1].min()) - 2000
 				end = int(CPAS_BED_DF[2].max()) + 2000
