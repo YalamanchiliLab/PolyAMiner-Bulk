@@ -48,8 +48,10 @@ BiocManager::install("sva")
 
 ### 2.3: Download organism-specific fasta and gtf reference files from https://bcm.box.com/s/vyze88bg9wr71kkxmz5yi4hvi8vstscd OR directly from Ensemble: http://uswest.ensembl.org/info/data/ftp/index.html/
 
-## Step 3: Run PolyAMiner-Bulk
+## Step 3: Understand PolyAMiner-Bulk Command-Line Parameters
 
-## Step 4 (Optional): Download RBM17 Test Data and Run Test Script
+## Step 4 (Optional): Run Test Script
 
-## Q&A
+## Feedback?
+
+Please complete the following form if you have any questions or feedback: https://forms.gle/8rF4TZcPoS15PEsB8. We will update this readme with answers to the most frequently asked questions. 
