@@ -427,8 +427,10 @@ def main():
 	Intron_PAusage = args.o.rstrip("/")+"/"+args.outPrefix+"_Intron_PAusage_Results.txt"
 	UTR3_PAusage = args.o.rstrip("/")+"/"+args.outPrefix+"_UTR3_PAusage_Results.txt"
 	UTR5_PAusage = args.o.rstrip("/")+"/"+args.outPrefix+"_UTR5_PAusage_Results.txt"
+	CPAS_BED_FILE = args.o.rstrip("/")+"/"+args.outPrefix+".CPAS.bed"
+	PolyACountMatrix_File = args.o.rstrip("/")+"/"+args.outPrefix+"_APA.CountMatrix.GFil.PA.PR.txt"
 
-	keepFiles = [logfile, DAGresultFile, DEGresultFile, DEGHeatmap, DEGVolcanoPlot, APAFactorHeatmap, APAFactorVolcanoPlot, DAGVolcanoPlot, PA_PCAPlot, PA_tSNEPlot, Gene_PCAPlot, Gene_tSNEPlot, CDS_PAusage, Intron_PAusage, UTR3_PAusage, UTR5_PAusage]
+	keepFiles = [logfile, DAGresultFile, DEGresultFile, DEGHeatmap, DEGVolcanoPlot, APAFactorHeatmap, APAFactorVolcanoPlot, DAGVolcanoPlot, PA_PCAPlot, PA_tSNEPlot, Gene_PCAPlot, Gene_tSNEPlot, CDS_PAusage, Intron_PAusage, UTR3_PAusage, UTR5_PAusage, CPAS_BED_FILE, PolyACountMatrix_File]
 
 	if not args.verboseLogging:
 		print(args.verboseLogging)
@@ -439,15 +441,22 @@ def main():
 
 		VisualizeTracks1 = VisualizeTracks(outDir = args.o,
 		outPrefix = args.outPrefix,
+		fasta = args.fasta,
 		gtf = args.gtf,
 		polyAResults = DAGresultFile,
+		polyACountMatrix = PolyACountMatrix_File,
+		CPAS_BED = CPAS_BED_FILE,
 		condition1SamplesBAM = args.c1,
 		condition2SamplesBAM = args.c2,
 		condition1Name = args.visualizeCondition1Name,
 		condition2Name = args.visualizeCondition2Name,
+		condition1NameHeatmap = "CR",
+		condition2NameHeatmap = "TR",
 		numTop = args.visualizeTopNum,
+		existingBWFolder = "",
 		verbosePrinting = True,
-		strandedness = args.s
+		strandedness = args.s,
+		gene = ""
 		)
 
 		VisualizeTracks1.visualizeTopDAGs()

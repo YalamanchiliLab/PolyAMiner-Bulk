@@ -80,13 +80,43 @@ class VisualizeTracks:
 
 			if self.strandedness == 0:
 				for file in glob.glob(self.existingBWFolder+"/"+BASENAME):
-					self.condition1SamplesBW_FORWARD.append(file)
-					self.condition1SamplesBW_REVERSE.append(file)
+					self.condition2SamplesBW_FORWARD.append(file)
+					self.condition2SamplesBW_REVERSE.append(file)
 			else:
 				for file in glob.glob(self.existingBWFolder+"/"+BASENAME_FORWARD):
 					self.condition2SamplesBW_FORWARD.append(file)
 				for file in glob.glob(self.existingBWFolder+"/"+BASENAME_REVERSE):
 					self.condition2SamplesBW_REVERSE.append(file)
+
+		for file in self.condition1SamplesBAM:
+			BASENAME = os.path.basename(file).replace(".bam",".bw")
+			BASENAME_FORWARD = os.path.basename(file).replace(".bam","pseudoPAC_forward_.bw")
+			BASENAME_REVERSE = os.path.basename(file).replace(".bam","pseudoPAC_reverse_.bw")
+			
+			if self.strandedness == 0:
+				for file in glob.glob(self.existingBWFolder+"/"+BASENAME):
+					self.condition1SamplesBW_PseudoPAC_FORWARD.append(file)
+					self.condition1SamplesBW_PseudoPAC_REVERSE.append(file)
+			else:
+				for file in glob.glob(self.existingBWFolder+"/"+BASENAME_FORWARD):
+					self.condition1SamplesBW_PseudoPAC_FORWARD.append(file)
+				for file in glob.glob(self.existingBWFolder+"/"+BASENAME_REVERSE):
+					self.condition1SamplesBW_PseudoPAC_REVERSE.append(file)
+
+		for file in self.condition2SamplesBAM:
+			BASENAME = os.path.basename(file).replace(".bam",".bw")
+			BASENAME_FORWARD = os.path.basename(file).replace(".bam","pseudoPAC_forward_.bw")
+			BASENAME_REVERSE = os.path.basename(file).replace(".bam","pseudoPAC_reverse_.bw")
+
+			if self.strandedness == 0:
+				for file in glob.glob(self.existingBWFolder+"/"+BASENAME):
+					self.condition2SamplesBW_PseudoPAC_FORWARD.append(file)
+					self.condition2SamplesBW_PseudoPAC_REVERSE.append(file)
+			else:
+				for file in glob.glob(self.existingBWFolder+"/"+BASENAME_FORWARD):
+					self.condition2SamplesBW_PseudoPAC_FORWARD.append(file)
+				for file in glob.glob(self.existingBWFolder+"/"+BASENAME_REVERSE):
+					self.condition2SamplesBW_PseudoPAC_REVERSE.append(file)
 
 	def _convertBam2BW(self):
 		counter = 1
@@ -579,6 +609,15 @@ class VisualizeTracks:
 			dummyList = [1000 for i in range(len(endList))]
 			strandList = list(list(zip(*regionList))[3])
 			CPAS_BED_DF = pd.DataFrame(list(zip(chrList, startList, endList, featureList, dummyList, strandList)))
+			# CPAS_BED_DF.columns = ["Chr", "Start", "End", "Feature", "Dummy", "Strand"]
+			CPAS_BED_DF[1] =  pd.to_numeric(CPAS_BED_DF[1])
+			CPAS_BED_DF[2] =  pd.to_numeric(CPAS_BED_DF[2])
+			CPAS_BED_DF["Midpoint"] = CPAS_BED_DF[[1, 2]].mean(axis=1)
+			CPAS_BED_DF['Midpoint'] = CPAS_BED_DF['Midpoint'].apply(lambda x: round(x, 0))
+			CPAS_BED_DF = CPAS_BED_DF.astype({"Midpoint": int})
+			CPAS_BED_DF[1] = CPAS_BED_DF["Midpoint"] - 1
+			CPAS_BED_DF[2] = CPAS_BED_DF["Midpoint"]
+			CPAS_BED_DF = CPAS_BED_DF.drop('Midpoint', axis=1)
 			CPAS_BED_DF.to_csv(self.formattedCPAS_BED_FileLoc, sep = "\t", header = None, index = False)
 
 			CPAS_BED_DF[1] = pd.to_numeric(CPAS_BED_DF[1]) - 160
