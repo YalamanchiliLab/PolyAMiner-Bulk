@@ -8,12 +8,15 @@ import matplotlib.pylab as plt
 import os.path
 
 class VisualizeTracks:
-	def __init__ (self, outDir, outPrefix, gtf, polyAResults, polyACountMatrix, condition1SamplesBAM, condition2SamplesBAM, condition1Name, condition2Name, condition1NameHeatmap, condition2NameHeatmap, numTop, verbosePrinting, existingBWFolder, strandedness, gene):
+	def __init__ (self, outDir, outPrefix, fasta, gtf, polyAResults, polyACountMatrix, CPAS_BED, condition1SamplesBAM, condition2SamplesBAM, condition1Name, condition2Name, condition1NameHeatmap, condition2NameHeatmap, numTop, verbosePrinting, existingBWFolder, strandedness, gene):
 		self.outDir = outDir.rstrip("/")+"/"
 		self.outPrefix = outPrefix
+		self.FASTA = fasta
 		self.GTF = gtf
 		self.polyAResults = polyAResults
 		self.polyACountMatrix = polyACountMatrix
+		self.CPAS_BED = CPAS_BED
+
 		self.condition1SamplesBAMOriginal = condition1SamplesBAM
 		self.condition2SamplesBAMOriginal = condition2SamplesBAM
 		self.condition1SamplesBAM = "".join(condition1SamplesBAM).replace(" ","").split(",")
@@ -28,12 +31,18 @@ class VisualizeTracks:
 
 		self.condition1SamplesBW_FORWARD = []
 		self.condition1SamplesBW_REVERSE = []
+		self.condition1SamplesBW_PseudoPAC_FORWARD = []
+		self.condition1SamplesBW_PseudoPAC_REVERSE = []
 
 		self.condition2SamplesBW_FORWARD = []
 		self.condition2SamplesBW_REVERSE = []
+		self.condition2SamplesBW_PseudoPAC_FORWARD = []
+		self.condition2SamplesBW_PseudoPAC_REVERSE = []
 
 		self.CONFIG_FILEPATH_FORWARD = self.outDir + self.outPrefix + "forward.config.ini"
+		self.CONFIG_PSEUDOPAC_FILEPATH_FORWARD = self.outDir + self.outPrefix + "psuedoPAC_forward.config.ini"
 		self.CONFIG_FILEPATH_REVERSE = self.outDir + self.outPrefix + "reverse.config.ini"
+		self.CONFIG_PSEUDOPAC_FILEPATH_REVERSE = self.outDir + self.outPrefix + "psuedoPAC_reverse.config.ini"
 
 		self.verbosePrinting = verbosePrinting
 		self.existingBWFolder = existingBWFolder.rstrip("/")
@@ -163,29 +172,166 @@ class VisualizeTracks:
 				self.condition2SamplesBW_FORWARD.append(OUTPUT_FORWARD)
 				self.condition2SamplesBW_REVERSE.append(OUTPUT_REVERSE)
 
-	def _makeConfigFile(self, strand, chromosome, start, end):
+	def _convertBam2BW4PseudoPAC(self):
+		cmd = "samtools faidx " + self.FASTA
+		if self.verbosePrinting:
+			print(cmd)
+		os.system(cmd)
+
+		CHROM_SIZES = self.outDir + self.outPrefix + "chrom.sizes"
+		cmd = "rm " + CHROM_SIZES
+		if self.verbosePrinting:
+			print(cmd)
+		os.system(cmd)
+
+		FASTA_INDEX = self.FASTA.replace(".fa", ".fa.fai")
+		cmd = "cut -f 1,2 " + FASTA_INDEX + " > " + CHROM_SIZES
+		if self.verbosePrinting:
+			print(cmd)
+		os.system(cmd)
+
+		SORTED_CPAS_BED_FILELOC = self.outDir + self.outPrefix + "sortedb4complement_CPAS.bed"
+		cmd = "rm " + SORTED_CPAS_BED_FILELOC
+		os.system(cmd)
+		cmd = "bedtools sort -i " + self.CPAS_BED + " -g " + CHROM_SIZES + " > " + SORTED_CPAS_BED_FILELOC
+		if self.verbosePrinting:
+			print(cmd)
+		os.system(cmd)
+
+		CPAS_COMPLEMENT_BED_FileLoc = self.outDir + self.outPrefix + "complement_CPAS.bed"
+		cmd = "rm " + CPAS_COMPLEMENT_BED_FileLoc
+		os.system(cmd)
+		cmd = "bedtools complement -i " + SORTED_CPAS_BED_FILELOC + " -g " + CHROM_SIZES + " -L > " + CPAS_COMPLEMENT_BED_FileLoc
+		if self.verbosePrinting:
+			print(cmd)
+		os.system(cmd)
+
+		counter = 1
+		total = (len(self.condition1SamplesBAM) * 2) + (len(self.condition2SamplesBAM)*2)
+
+		for file in self.condition1SamplesBAM:
+			BASENAME = os.path.basename(file).replace(".bam",".bw")
+			BASENAME_FORWARD = os.path.basename(file).replace(".bam","pseudoPAC_forward_.bw")
+			BASENAME_REVERSE = os.path.basename(file).replace(".bam","pseudoPAC_reverse_.bw")
+			OUTPUT_DIR = self.outDir + "Stranded_BW"
+			if (os.path.isdir(OUTPUT_DIR) == False):
+				os.system("mkdir " + OUTPUT_DIR)
+			OUTPUT_FORWARD = OUTPUT_DIR + "/" + BASENAME_FORWARD
+			OUTPUT_REVERSE = OUTPUT_DIR + "/" + BASENAME_REVERSE
+			OUTPUT = OUTPUT_DIR + "/" + BASENAME
+
+			if self.strandedness == 0:
+				if os.path.exists(OUTPUT) == False:
+					cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads -o " + OUTPUT + " --blackListFileName " + CPAS_COMPLEMENT_BED_FileLoc)
+					print("# (Condition 1) Converting BAMs to PseudoPAC BWs: " +  str(counter) + " of " + str(total))
+					counter += 1
+					if self.verbosePrinting:
+						print(cmd)
+					os.system(cmd)
+
+				self.condition1SamplesBW_PseudoPAC_FORWARD.append(OUTPUT)
+				self.condition1SamplesBW_PseudoPAC_REVERSE.append(OUTPUT)
+
+			else:
+				if os.path.exists(OUTPUT_FORWARD) == False:
+					cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand forward -o " + OUTPUT_FORWARD + " --blackListFileName " + CPAS_COMPLEMENT_BED_FileLoc)
+					print("# (Condition 1) Converting BAMs to PseudoPAC BWs: " +  str(counter) + " of " + str(total))
+					counter += 1
+					if self.verbosePrinting:
+						print(cmd)
+					os.system(cmd)
+				if os.path.exists(OUTPUT_REVERSE) == False: 
+					cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand reverse -o " + OUTPUT_REVERSE + " --blackListFileName " + CPAS_COMPLEMENT_BED_FileLoc)
+					print("# (Condition 1) Converting BAMs to PseudoPAC BWs: " +  str(counter) + " of " + str(total))
+					counter += 1
+					if self.verbosePrinting:
+						print(cmd)	
+					os.system(cmd)
+				self.condition1SamplesBW_PseudoPAC_FORWARD.append(OUTPUT_FORWARD)
+				self.condition1SamplesBW_PseudoPAC_REVERSE.append(OUTPUT_REVERSE)
+
+		for file in self.condition2SamplesBAM:
+			BASENAME = os.path.basename(file).replace(".bam",".bw")
+			BASENAME_FORWARD = os.path.basename(file).replace(".bam","pseudoPAC_forward_.bw")
+			BASENAME_REVERSE = os.path.basename(file).replace(".bam","pseudoPAC_reverse_.bw")
+			OUTPUT_FORWARD = OUTPUT_DIR + "/" + BASENAME_FORWARD
+			OUTPUT_REVERSE = OUTPUT_DIR + "/" + BASENAME_REVERSE
+			OUTPUT = OUTPUT_DIR + "/" + BASENAME
+
+			if self.strandedness == 0:
+				if os.path.exists(OUTPUT) == False:
+					cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads -o " + OUTPUT + " --blackListFileName " + CPAS_COMPLEMENT_BED_FileLoc)
+					print("# (Condition 2) Converting BAMs to PseudoPAC BWs: " +  str(counter) + " of " + str(total))
+					counter += 1
+					if self.verbosePrinting:
+						print(cmd)
+					os.system(cmd)
+
+				self.condition2SamplesBW_PseudoPAC_FORWARD.append(OUTPUT)
+				self.condition2SamplesBW_PseudoPAC_REVERSE.append(OUTPUT)
+
+			else:
+				if os.path.exists(OUTPUT_FORWARD) == False:
+					cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand forward -o " + OUTPUT_FORWARD + " --blackListFileName " + CPAS_COMPLEMENT_BED_FileLoc)
+					print("# (Condition 2) Converting BAMs to PseudoPAC BWs: " +  str(counter) + " of " + str(total))
+					counter += 1
+					if self.verbosePrinting:
+						print(cmd)	
+					os.system(cmd)
+				if os.path.exists(OUTPUT_REVERSE) == False: 
+					cmd = ("bamCoverage -b "+file+" -bs 5 -p 20 --normalizeUsing CPM --skipNonCoveredRegions --smoothLength 15 --centerReads --filterRNAstrand reverse -o " + OUTPUT_REVERSE + " --blackListFileName " + CPAS_COMPLEMENT_BED_FileLoc)
+					print("# (Condition 2) Converting BAMs to PseudoPAC BWs: " +  str(counter) + " of " + str(total))
+					counter += 1
+					if self.verbosePrinting:
+						print(cmd)
+					os.system(cmd)
+
+				self.condition2SamplesBW_PseudoPAC_FORWARD.append(OUTPUT_FORWARD)
+				self.condition2SamplesBW_PseudoPAC_REVERSE.append(OUTPUT_REVERSE)
+
+	def _makeConfigFile(self, strand, chromosome, start, end, pseudoPACFlag):
 		if self.strandedness == 2 or self.strandedness == 0:		
 			if (strand == "forward"):
-				CONFIG_FILEPATH = self.CONFIG_FILEPATH_FORWARD
-				condition1SamplesBW = self.condition1SamplesBW_FORWARD
-				condition2SamplesBW = self.condition2SamplesBW_FORWARD
+				if pseudoPACFlag:
+					CONFIG_FILEPATH = self.CONFIG_PSEUDOPAC_FILEPATH_FORWARD
+					condition1SamplesBW = self.condition1SamplesBW_PseudoPAC_FORWARD
+					condition2SamplesBW = self.condition2SamplesBW_PseudoPAC_FORWARD
+				else:
+					CONFIG_FILEPATH = self.CONFIG_FILEPATH_FORWARD
+					condition1SamplesBW = self.condition1SamplesBW_FORWARD
+					condition2SamplesBW = self.condition2SamplesBW_FORWARD
 			
 			elif (strand == "reverse"):
-				CONFIG_FILEPATH = self.CONFIG_FILEPATH_REVERSE
-				condition1SamplesBW = self.condition1SamplesBW_REVERSE
-				condition2SamplesBW = self.condition2SamplesBW_REVERSE
+				if pseudoPACFlag:
+					CONFIG_FILEPATH = self.CONFIG_PSEUDOPAC_FILEPATH_REVERSE
+					condition1SamplesBW = self.condition1SamplesBW_PseudoPAC_REVERSE
+					condition2SamplesBW = self.condition2SamplesBW_PseudoPAC_REVERSE
+				else:
+					CONFIG_FILEPATH = self.CONFIG_FILEPATH_REVERSE
+					condition1SamplesBW = self.condition1SamplesBW_REVERSE
+					condition2SamplesBW = self.condition2SamplesBW_REVERSE
 
 		elif self.strandedness == 1:
 			# print("Using self.strandedness == 1 parameter and reversed forward and reverse BW paths")		
 			if (strand == "forward"):
-				CONFIG_FILEPATH = self.CONFIG_FILEPATH_REVERSE
-				condition1SamplesBW = self.condition1SamplesBW_REVERSE
-				condition2SamplesBW = self.condition2SamplesBW_REVERSE
+				if pseudoPACFlag:
+					CONFIG_FILEPATH = self.CONFIG_PSEUDOPAC_FILEPATH_REVERSE
+					condition1SamplesBW = self.condition1SamplesBW_PseudoPAC_REVERSE
+					condition2SamplesBW = self.condition2SamplesBW_PseudoPAC_REVERSE
+				else:
+					CONFIG_FILEPATH = self.CONFIG_FILEPATH_REVERSE
+					condition1SamplesBW = self.condition1SamplesBW_REVERSE
+					condition2SamplesBW = self.condition2SamplesBW_REVERSE
 			
 			elif (strand == "reverse"):
-				CONFIG_FILEPATH = self.CONFIG_FILEPATH_FORWARD
-				condition1SamplesBW = self.condition1SamplesBW_FORWARD
-				condition2SamplesBW = self.condition2SamplesBW_FORWARD
+				if pseudoPACFlag:
+					CONFIG_FILEPATH = self.CONFIG_PSEUDOPAC_FILEPATH_FORWARD
+					condition1SamplesBW = self.condition1SamplesBW_PseudoPAC_FORWARD
+					condition2SamplesBW = self.condition2SamplesBW_PseudoPAC_FORWARD
+				else:
+					CONFIG_FILEPATH = self.CONFIG_FILEPATH_FORWARD
+					condition1SamplesBW = self.condition1SamplesBW_FORWARD
+					condition2SamplesBW = self.condition2SamplesBW_FORWARD
 
 		Con1_MaximumValue = 0
 		value = 0
@@ -441,6 +587,7 @@ class VisualizeTracks:
 			#Maybe slop CPAS BED by X coordinates on both sides???
 
 			OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) +".DAG_Track_WholeGeneView.png"
+			PSEUDOPAC_OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) +".PseudoPAC_DAG_Track_WholeGeneView.png"
 			chromosome = CPAS_BED_DF[0][0]
 			start = int(CPAS_BED_DF[1].min()) - 2000
 			end = int(CPAS_BED_DF[2].max()) + 2000
@@ -501,30 +648,41 @@ class VisualizeTracks:
 				print("Couldn't find polyACountMatrix file...skipping...")
 			
 			if (strand == "+"):
-				self._makeConfigFile(strand = "forward", chromosome = chromosome, start = start, end = end)
+				self._makeConfigFile(strand = "forward", chromosome = chromosome, start = start, end = end, pseudoPACFlag = False)
+				self._makeConfigFile(strand = "forward", chromosome = chromosome, start = start, end = end, pseudoPACFlag = True)
 				if (self.strandedness == 1):
-					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+					cmd1 = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+					cmd2 = "pyGenomeTracks --tracks " + self.CONFIG_PSEUDOPAC_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + PSEUDOPAC_OUTPUT_FILEPATH
 
 				elif (self.strandedness == 2):
-					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+					cmd1 = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+					cmd2 = "pyGenomeTracks --tracks " + self.CONFIG_PSEUDOPAC_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + PSEUDOPAC_OUTPUT_FILEPATH
 
 				elif (self.strandedness == 0):
-					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+					cmd1 = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+					cmd2 = "pyGenomeTracks --tracks " + self.CONFIG_PSEUDOPAC_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + PSEUDOPAC_OUTPUT_FILEPATH
+
 			elif (strand == "-"):
-				self._makeConfigFile(strand = "reverse", chromosome = chromosome, start = start, end = end)
+				self._makeConfigFile(strand = "reverse", chromosome = chromosome, start = start, end = end, pseudoPACFlag = False)
+				self._makeConfigFile(strand = "reverse", chromosome = chromosome, start = start, end = end, pseudoPACFlag = True)
 				if (self.strandedness == 1):
-					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+					cmd1 = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+					cmd2 = "pyGenomeTracks --tracks " + self.CONFIG_PSEUDOPAC_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + PSEUDOPAC_OUTPUT_FILEPATH
 
 				elif (self.strandedness == 2):
-					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+					cmd1 = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+					cmd2 = "pyGenomeTracks --tracks " + self.CONFIG_PSEUDOPAC_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + PSEUDOPAC_OUTPUT_FILEPATH
 
 				elif (self.strandedness == 0):
-					cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+					cmd1 = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+					cmd2 = "pyGenomeTracks --tracks " + self.CONFIG_PSEUDOPAC_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + PSEUDOPAC_OUTPUT_FILEPATH
 
-			os.system(cmd)
+			os.system(cmd1)
+			os.system(cmd2)
 			
 			try:
 				OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) +".DAG_Track_3UTRView.png" 
+				PSEUDOPAC_OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) +".PseudoPAC_DAG_Track_3UTRView.png"
 				CPAS_BED_DF = CPAS_BED_DF[CPAS_BED_DF[3].str.contains("UTR3") | CPAS_BED_DF[3].str.contains("UN")]
 				start = int(CPAS_BED_DF[1].min()) - 2000
 				end = int(CPAS_BED_DF[2].max()) + 2000
@@ -537,33 +695,45 @@ class VisualizeTracks:
 
 				if (strand == "+"):
 					if (self.strandedness == 1):
-						cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+						cmd1 = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+						cmd2 = "pyGenomeTracks --tracks " + self.CONFIG_PSEUDOPAC_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + PSEUDOPAC_OUTPUT_FILEPATH
 
 					elif (self.strandedness == 2):
-						cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+						cmd1 = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+						cmd2 = "pyGenomeTracks --tracks " + self.CONFIG_PSEUDOPAC_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + PSEUDOPAC_OUTPUT_FILEPATH
 
 					elif (self.strandedness == 0):
-						cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+						cmd1 = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+						cmd2 = "pyGenomeTracks --tracks " + self.CONFIG_PSEUDOPAC_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + PSEUDOPAC_OUTPUT_FILEPATH
+
 				elif (strand == "-"):
 					if (self.strandedness == 1):
-						cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+						cmd1 = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+						cmd2 = "pyGenomeTracks --tracks " + self.CONFIG_PSEUDOPAC_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + PSEUDOPAC_OUTPUT_FILEPATH
 
 					elif (self.strandedness == 2):
-						cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+						cmd1 = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+						cmd2 = "pyGenomeTracks --tracks " + self.CONFIG_PSEUDOPAC_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + PSEUDOPAC_OUTPUT_FILEPATH
 
 					elif (self.strandedness == 0):
-						cmd = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+						cmd1 = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
+						cmd2 = "pyGenomeTracks --tracks " + self.CONFIG_PSEUDOPAC_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + PSEUDOPAC_OUTPUT_FILEPATH
 
-				os.system(cmd)
+				os.system(cmd1)
+				os.system(cmd2)
 			except:
 				print(str(Gene) + " has no 3'UTR or UN C/PASs.....")
 
 	def visualizeTopDAGs(self):
 		if len(self.existingBWFolder) == 0:
 			self._convertBam2BW()
+			if len(self.CPAS_BED) > 0:
+				self._convertBam2BW4PseudoPAC()
+			else:
+				print("C/PAS BED File Location not provided...skipping PsuedoPAC Visualization...")
 		else:
 			self._useExistingBWFolder()
-
+		
 		commonBase = self.outDir
 		if len(self.gene) > 0:
 			self.outDir = commonBase + "Specified_Gene/"
@@ -588,9 +758,11 @@ def main ():
 
 	required.add_argument("-o", help = 'Output directory', type = str, default = 'PolyAminer_OUT')
 	required.add_argument("-outPrefix", help = 'Output file/s prefix', default = "PolyAminer_Out", type = str)
+	required.add_argument('-fasta',help = 'Reference fasta file',required = 'True', type = str)
 	required.add_argument('-gtf',help = 'Reference gtf file',required = 'True', type = str)
 	required.add_argument("-polyAResults", help = "PolyAMiner-Bulk Results File", required = "True", type = str)
 	required.add_argument("-polyACountMatrix", help = "PolyAMiner-Bulk GFil.PA.PR Count Matrix File", type = str, default = "")
+	required.add_argument("-CPAS_BED", help = "BED File of all C/PAS Locations", type = str, default = "")
 	required.add_argument('-c1',help='Comma-separated list of condition1 BAM files in full path format. Index files are also expected', nargs='+',required='True',type=str)
 	required.add_argument('-c2',help='Comma-separated list of condition2 BAM files in full path format. Index files are also expected', nargs='+',required='True',type=str)
 	required.add_argument("-c1Name", help = "Condition 1 Sample Name", type = str, default = "Control")
@@ -609,9 +781,11 @@ def main ():
 
 	VisualizeTracks1 = VisualizeTracks(outDir = args.o,
 		outPrefix = args.outPrefix,
+		fasta = args.fasta,
 		gtf = args.gtf,
 		polyAResults = args.polyAResults,
 		polyACountMatrix = args.polyACountMatrix,
+		CPAS_BED = args.CPAS_BED,
 		condition1SamplesBAM = args.c1,
 		condition2SamplesBAM = args.c2,
 		condition1Name = args.c1Name,
