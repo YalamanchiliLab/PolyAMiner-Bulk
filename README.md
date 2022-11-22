@@ -54,7 +54,7 @@ sudo apt install build-essential
 conda install -c anaconda seaborn 
 sudo apt-get install gfortran
 
-
+<!-- 
 conda install pandas
 conda install statsmodels
 pip3 install -U scikit-learn
@@ -71,10 +71,10 @@ conda install -c bioconda pybedtools
 conda install -c bioconda pybigwig
 conda install -c bioconda subread
 conda install -c bioconda samtools
-conda install -c conda-forge r-kernsmooth
+conda install -c conda-forge r-kernsmooth -->
 ```
 BiocManager::install("sva")
-
+test
 
 ## Step 2: Download trained ML-models + ML-dependencies + necessary reference files
 
@@ -86,28 +86,28 @@ BiocManager::install("sva")
 
 ## Step 3: Understand PolyAMiner-Bulk Command-Line Parameters
 
-#### Required Parameters
--mode = 'Run mode options: \'bam\' to start from mapped data, \'fastq\' to start from raw data',choices=['bam','fastq'],default='bam',required='True',type=str)
-optional.add_argument('-d',help='Base directory of input fastq files. Valid for -mode fastq ',type=str)
-optional.add_argument('-o',help='Output directory',type=str,default='PolyAminer_OUT')
-required.add_argument('-c1',help='Comma-separated list of condition1 files. Full path for BAMs (index files are also expected) or Just file names for fastq', nargs='+',required='True',type=str)
-required.add_argument('-c2',help='Comma-separated list of condition2 files. Full path for BAMs (index files are also expected) or Just file names for fastq ', nargs='+',required='True',type=str)
-parser.add_argument('-s',help='Strand information 0: un-stranded 1: fwd-strand 2:rev-strand. ',choices=[0,1,2],type=int,default=0)
+#### Base Parameters
+-mode = Run mode options: \'bam\' to start from mapped data, \'fastq\' to start from raw data' (string)
+-index = Reference genome bowtie2 index. NOTE: Valid for -mode fastq ONLY! (string)
+-d = Base directory of input fastq files. NOTE: Valid for -mode fastq ONLY! (string)
+-o = Output directory; default = 'PolyAminer_OUT' (string)
+-c1 = Comma-separated list of condition1 files. Full path for BAMs (index files are also expected) or just file names for fastq (string)
+-c2 = Comma-separated list of condition2 files. Full path for BAMs (index files are also expected) or Just file names for fastq (string)
+-s = Strand information. Use 0 for un-stranded, 1 for fwd-stranded, and 2 for rev-stranded (integer)
 
-#### Ref. files
-optional.add_argument('-index',help='Reference genome bowtie2 index. Valid for -mode fastq',type=str)
-required.add_argument('-fasta',help='Reference fasta sequence',required='True',type=str)
-required.add_argument('-gtf',help='Reference gtf file',required='True',type=str)
-required.add_argument('-pa',help='PolyA annotations file standard 6 column bed format',type=str)
-required.add_argument('-apriori_annotations',help='Use pre-loaded a priori PolyASite 2.0 and PolyADB 3.0 annotations', action=argparse.BooleanOptionalAction)
-required.add_argument('-paired',help='Sample files are paired (i.e., pre-treatment vs post-treatment) for beta-binomial test', action=argparse.BooleanOptionalAction)
-required.add_argument('-verboseLogging',help='Enable verbose logging to output directory', action=argparse.BooleanOptionalAction)
-required.add_argument('-verbosePrinting',help='Enable verbose printing to terminal', action=argparse.BooleanOptionalAction)
-required.add_argument('-noDEGAnalyzer',help='Disable DEG analysis', action=argparse.BooleanOptionalAction)
+#### Required Ref. Files
+-fasta = Reference fasta file
+-gtf = Reference gtf file
+-pa =PolyA annotations file standard 6 column bed format (string)
+-apriori_annotations = Enable pre-loading of a priori PolyASite 2.0 and PolyADB 3.0 annotations (boolean toggle)
+!Note: In general, between these -pa and -apriori_annotations options, use -apriori_annotations.
 
+#### Tuning
+-paired = Enable paired analyses where sample files are considered paired (i.e., pre-treatment vs post-treatment) for beta-binomial statistical test (boolean toggle)
+
+### Cleaning
 
 #### Optional Parameters
-optional.add_argument('-umi',help='Length of UMIs, 0 if not used', type=int,default=0)
 optional.add_argument('-ignore',help=' Comma-separated list of regions to igonore from APA analysis UTR5, Introns, CDS, UTR3', nargs='+',type=str,default='ZZZZZZ')
 optional.add_argument('-apaBlock',help='Window size for annotated polyA sites',type=int, default=30)
 optional.add_argument('-mdapa',help='Cluster distance for annotated polyA sites: Merge polyA sites with in this distance. ',type=int, default=0)
@@ -146,6 +146,14 @@ optional.add_argument('-visualizeCondition2NameHeatmap',help='Name of Condition 
 optional.add_argument('-outPrefix',help='Output file/s prefix', default="PolyAminer_Out",type=str)
 
 ## Step 4 (Optional): Run Test Script
+
+## FAQ
+
+Q1) I am unable to install the gplots package and its corresponding dependencies when running "Rscript installPkgs.R". 
+A1) This usually occurs when OS-level dependencies are missing. If on Linux, try running "apt-get install libblas-dev liblapack-dev prior to running "Rscript installPkgs.R". 
+
+Q2) I am unable to install the DESEQ2 package and its corresponding dependencies when running "Rscript installPkgs.R". 
+A2) This usually occurs when OS-level dependencies are missing. Look through the error messages. Usually the console will request specific OS-level dependencies to be manually installed (see answer to Q1)
 
 ## Feedback?
 
