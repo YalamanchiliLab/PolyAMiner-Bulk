@@ -96,8 +96,8 @@ def main():
 	optional.add_argument('-visualizeCondition2Name',help='Name of Condition 2 when generating read density visualization plots',type=str, default="Treatment")
 
 	#
-	optional.add_argument('-t',help='Statistical Test- BB: for beta-binomial or iNMF: for iterative NMF. For small sample size BB is recommended ',choices=['BB','iNMF'],type=str,default="BB")
-	optional.add_argument('-i',help='No. of NMF iterations. Valid only for -t iNMF',type=int,default=100)
+	# optional.add_argument('-t',help='Statistical Test- BB: for beta-binomial or iNMF: for iterative NMF. For small sample size BB is recommended ',choices=['BB','iNMF'],type=str,default="BB")
+	# optional.add_argument('-i',help='No. of NMF iterations. Valid only for -t iNMF',type=int,default=100)
 	optional.add_argument('-outPrefix',help='Output file/s prefix', default="PolyAminer_Out",type=str)
 
 	if len(sys.argv)==1:
@@ -106,6 +106,7 @@ def main():
 	args=parser.parse_args()
 	args_dict = vars(args)
 	args.o=args.o.rstrip("/")+"/"
+	args.t = "BB"
 
 	############################################################################################################
 	# Module 0: Safety Checks -- Check output directory, start logging, check dependencies, check input files  #
