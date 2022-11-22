@@ -30,8 +30,30 @@ conda activate cpasbert
 ### 1.2: Install the necessary package dependencies
 
 ```
-conda install pytorch torchvision cudatoolkit=10.0 -c pytorch
+<!-- conda install pytorch torchvision cudatoolkit=10.0 -c pytorch -->
+conda install pytorch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cudatoolkit=10.0 -c pytorch
+
 git clone https://github.com/venkatajonnakuti/PolyAMiner-Bulk
+cd PolyAMiner-Bulk/lib/DNABERT
+python3 -m pip install --editable .
+Rscript installPkgs.R
+
+conda install pandas statsmodels
+pip3 install -U scikit-learn
+pip install pysam tokenizers
+pip install tensorboard
+conda install -c bioconda pyfasta
+conda install -c bioconda gtfparse
+conda install -c bioconda pybedtools
+conda install -c bioconda pybigwig
+conda install -c bioconda subread
+conda install -c bioconda samtools
+conda install -c bioconda bedtools
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+sudo apt install build-essential
+conda install -c anaconda seaborn 
+sudo apt-get install gfortran
+
 
 conda install pandas
 conda install statsmodels
@@ -43,12 +65,13 @@ pip install tokenizers
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 sudo apt install build-essential
 pip install transformers==2.5.0
-pip install tensorboard==2.9.1
+pip install tensorboard
 conda install -c anaconda seaborn 
 conda install -c bioconda pybedtools
 conda install -c bioconda pybigwig
 conda install -c bioconda subread
-
+conda install -c bioconda samtools
+conda install -c conda-forge r-kernsmooth
 ```
 BiocManager::install("sva")
 
