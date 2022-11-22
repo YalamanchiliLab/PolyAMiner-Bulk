@@ -93,7 +93,9 @@ class PolyASafety:
 		cleanupFiles = glob.glob(self.outDir + "/*")
 		cleanupFiles = [i for i in cleanupFiles if i not in keep]
 		for cleanupFile in cleanupFiles:
-			os.remove(cleanupFile) 
+			if "Stranded" not in os.path.basename(cleanupFile):
+				if "Graphics" not in os.path.basename(cleanupFile):
+					os.remove(cleanupFile) 
 		self._logMessage("Finished PolyAMiner")
 		# Tidy up  #
 		# files=[args.o.rstrip("/")+"/LibSize.txt",args.o.rstrip("/")+"/"+args.outPrefix+"_Gene_Stats.txt",args.o.rstrip("/")+"/"+args.outPrefix+'.APSitesDB.bed',args.o.rstrip("/")+"/"+args.outPrefix+"_APA.CountMatrix.GFil.PA.PR.txt",args.o.rstrip("/")+"/"+args.outPrefix+"_denovoAPAsites.bed"]
