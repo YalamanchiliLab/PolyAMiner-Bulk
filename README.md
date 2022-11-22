@@ -32,10 +32,6 @@ conda activate cpasbert
 ```
 conda install pytorch torchvision cudatoolkit=10.0 -c pytorch
 git clone https://github.com/venkatajonnakuti/PolyAMiner-Bulk
-<!-- cd PolyAMiner-Bulk
-cd lib
-cd DNABERT
-cd examples -->
 
 conda install pandas
 conda install statsmodels
@@ -51,10 +47,9 @@ pip install tensorboard==2.9.1
 conda install -c anaconda seaborn 
 conda install -c bioconda pybedtools
 conda install -c bioconda pybigwig
+conda install -c bioconda subread
 
 ```
-#python3 -m pip install -r requirements.txt
-python3 -m pip install -r /mnt/local_disk/venkata/home/PolyAMiner-Bulk/lib/DNABERT/examples/requirements.txt
 BiocManager::install("sva")
 
 
