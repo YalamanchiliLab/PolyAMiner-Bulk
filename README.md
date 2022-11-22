@@ -31,11 +31,30 @@ conda activate cpasbert
 
 ```
 conda install pytorch torchvision cudatoolkit=10.0 -c pytorch
-
 git clone https://github.com/venkatajonnakuti/PolyAMiner-Bulk
-cd PolyAMiner-Bulk
+<!-- cd PolyAMiner-Bulk
+cd lib
+cd DNABERT
+cd examples -->
+
+conda install pandas
+conda install statsmodels
+pip3 install -U scikit-learn
+pip install pysam
+conda install -c bioconda pyfasta
+conda install -c bioconda gtfparse
+pip install tokenizers
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+sudo apt install build-essential
+pip install transformers==2.5.0
+pip install tensorboard==2.9.1
+conda install -c anaconda seaborn 
+conda install -c bioconda pybedtools
+conda install -c bioconda pybigwig
+
 ```
 #python3 -m pip install -r requirements.txt
+python3 -m pip install -r /mnt/local_disk/venkata/home/PolyAMiner-Bulk/lib/DNABERT/examples/requirements.txt
 BiocManager::install("sva")
 
 
@@ -45,7 +64,7 @@ BiocManager::install("sva")
 
 ### 2.2: Download "CPASBERT_TrainedModels" from https://bcm.box.com/s/d1yt6iz95r18rfs2kf22thc58r3qipxg and copy the extracted folder (NOTE: not the folder contents!) into the /lib folder
 
-### 2.3: Download organism-specific fasta and gtf reference files from https://bcm.box.com/s/vyze88bg9wr71kkxmz5yi4hvi8vstscd OR directly from Ensemble: http://uswest.ensembl.org/info/data/ftp/index.html/ and save copy the extracted folder into your computer. Keep the locations of these files on hand as they are required parameters for PolyAMiner-Bulk.
+### 2.3: Download organism-specific fasta and gtf reference files from https://bcm.box.com/s/vyze88bg9wr71kkxmz5yi4hvi8vstscd OR directly from Ensemble: http://uswest.ensembl.org/info/data/ftp/index.html/ and copy the extracted folder to a readable and writeable location on your computer. NOTE: Keep the locations of these fasta and gtf reference files on hand as they are required parameters for PolyAMiner-Bulk.
 
 ## Step 3: Understand PolyAMiner-Bulk Command-Line Parameters
 
