@@ -34,19 +34,18 @@ conda install pytorch torchvision cudatoolkit=10.0 -c pytorch
 
 git clone https://github.com/venkatajonnakuti/PolyAMiner-Bulk
 cd PolyAMiner-Bulk
-python3 -m pip install -r requirements.txt
 ```
-
+#python3 -m pip install -r requirements.txt
 BiocManager::install("sva")
 
 
 ## Step 2: Download trained ML-models + ML-dependencies + necessary reference files
 
-### 2.1: Download "6-new-12w-0" from https://bcm.box.com/s/1lo85ig6eop2a5e12d52ytd6q98fg4xa and extract it into the /lib folder
+### 2.1: Download "6-new-12w-0" from https://bcm.box.com/s/1lo85ig6eop2a5e12d52ytd6q98fg4xa and copy the extracted folder (NOTE: not the folder contents!) into the /lib folder
 
-### 2.2: Download "CPASBERT_TrainedModels" from https://bcm.box.com/s/d1yt6iz95r18rfs2kf22thc58r3qipxg and extract it into the /lib folder
+### 2.2: Download "CPASBERT_TrainedModels" from https://bcm.box.com/s/d1yt6iz95r18rfs2kf22thc58r3qipxg and copy the extracted folder (NOTE: not the folder contents!) into the /lib folder
 
-### 2.3: Download organism-specific fasta and gtf reference files from https://bcm.box.com/s/vyze88bg9wr71kkxmz5yi4hvi8vstscd OR directly from Ensemble: http://uswest.ensembl.org/info/data/ftp/index.html/
+### 2.3: Download organism-specific fasta and gtf reference files from https://bcm.box.com/s/vyze88bg9wr71kkxmz5yi4hvi8vstscd OR directly from Ensemble: http://uswest.ensembl.org/info/data/ftp/index.html/ and save copy the extracted folder into your computer. Keep the locations of these files on hand as they are required parameters for PolyAMiner-Bulk.
 
 ## Step 3: Understand PolyAMiner-Bulk Command-Line Parameters
 
