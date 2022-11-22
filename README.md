@@ -105,6 +105,8 @@ optional.add_argument('-modelOrganism',help='Model organism for CPAS-BERT Model'
 optional.add_argument('-visualizeTopNum',help='Generate read density visualization plots for the top N genes, where N is an integer specified by the user ',type=int, default=0)
 optional.add_argument('-visualizeCondition1Name',help='Name of Condition 1 when generating read density visualization plots',type=str, default="Control")
 optional.add_argument('-visualizeCondition2Name',help='Name of Condition 2 when generating read density visualization plots',type=str, default="Treatment")
+optional.add_argument('-visualizeCondition1NameHeatmap',help='Name of Condition 2 when generating read density visualization plots',type=str, default="CR")
+optional.add_argument('-visualizeCondition2NameHeatmap',help='Name of Condition 2 when generating read density visualization plots',type=str, default="TR")
 optional.add_argument('-outPrefix',help='Output file/s prefix', default="PolyAminer_Out",type=str)
 
 ## Step 4 (Optional): Run Test Script

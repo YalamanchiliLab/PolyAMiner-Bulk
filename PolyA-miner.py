@@ -94,6 +94,8 @@ def main():
 	optional.add_argument('-visualizeTopNum',help='Generate read density visualization plots for the top N genes, where N is an integer specified by the user ',type=int, default=0)
 	optional.add_argument('-visualizeCondition1Name',help='Name of Condition 1 when generating read density visualization plots',type=str, default="Control")
 	optional.add_argument('-visualizeCondition2Name',help='Name of Condition 2 when generating read density visualization plots',type=str, default="Treatment")
+	optional.add_argument('-visualizeCondition1NameHeatmap',help='Name of Condition 2 when generating read density visualization plots',type=str, default="CR")
+	optional.add_argument('-visualizeCondition2NameHeatmap',help='Name of Condition 2 when generating read density visualization plots',type=str, default="TR")
 
 	#
 	# optional.add_argument('-t',help='Statistical Test- BB: for beta-binomial or iNMF: for iterative NMF. For small sample size BB is recommended ',choices=['BB','iNMF'],type=str,default="BB")
@@ -451,8 +453,8 @@ def main():
 		condition2SamplesBAM = args.c2,
 		condition1Name = args.visualizeCondition1Name,
 		condition2Name = args.visualizeCondition2Name,
-		condition1NameHeatmap = "CR",
-		condition2NameHeatmap = "TR",
+		condition1NameHeatmap = args.visualizeCondition1NameHeatmap,
+		condition2NameHeatmap = args.visualizeCondition2NameHeatmap,
 		numTop = args.visualizeTopNum,
 		existingBWFolder = "",
 		verbosePrinting = True,
