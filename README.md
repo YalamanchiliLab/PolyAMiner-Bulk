@@ -53,6 +53,8 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 sudo apt install build-essential
 conda install -c anaconda seaborn 
 sudo apt-get install gfortran
+pip install deeptools
+pip install pygenometracks==3.6
 
 <!-- 
 conda install pandas
@@ -71,10 +73,11 @@ conda install -c bioconda pybedtools
 conda install -c bioconda pybigwig
 conda install -c bioconda subread
 conda install -c bioconda samtools
-conda install -c conda-forge r-kernsmooth -->
-```
+conda install -c conda-forge r-kernsmooth
 BiocManager::install("sva")
-test
+test again
+ -->
+```
 
 ## Step 2: Download trained ML-models + ML-dependencies + necessary reference files
 

@@ -1,0 +1,2 @@
+# Run mode: from preprocessed bam files on: Tue 11/22/2022 at: 07:30:05 
+# Arguments checked on: Tue 11/22/2022 at: 07:30:05 
