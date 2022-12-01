@@ -3,6 +3,8 @@
 # V1.5
 # Tested on Python 3.9.5; look out for rstrip if using newer versions (alternative is v3.9.8 without rstrip)
 
+import warnings
+warnings.filterwarnings("ignore")
 import os, sys
 import time,argparse,subprocess, pandas as pd
 sys.path.append("/".join(os.path.abspath(sys.argv[0]).split("/")[0:-1])+"/lib")

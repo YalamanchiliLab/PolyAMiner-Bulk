@@ -240,7 +240,7 @@ class VisualizeTracks:
 		total = (len(self.condition1SamplesBAM) * 2) + (len(self.condition2SamplesBAM)*2)
 
 		for file in self.condition1SamplesBAM:
-			BASENAME = os.path.basename(file).replace(".bam",".bw")
+			BASENAME = os.path.basename(file).replace(".bam","pseudoPAC_.bw")
 			BASENAME_FORWARD = os.path.basename(file).replace(".bam","pseudoPAC_forward_.bw")
 			BASENAME_REVERSE = os.path.basename(file).replace(".bam","pseudoPAC_reverse_.bw")
 			OUTPUT_DIR = self.outDir + "Stranded_BW"
@@ -281,7 +281,7 @@ class VisualizeTracks:
 				self.condition1SamplesBW_PseudoPAC_REVERSE.append(OUTPUT_REVERSE)
 
 		for file in self.condition2SamplesBAM:
-			BASENAME = os.path.basename(file).replace(".bam",".bw")
+			BASENAME = os.path.basename(file).replace(".bam","pseudoPAC_.bw")
 			BASENAME_FORWARD = os.path.basename(file).replace(".bam","pseudoPAC_forward_.bw")
 			BASENAME_REVERSE = os.path.basename(file).replace(".bam","pseudoPAC_reverse_.bw")
 			OUTPUT_FORWARD = OUTPUT_DIR + "/" + BASENAME_FORWARD

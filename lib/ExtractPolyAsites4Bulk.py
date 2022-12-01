@@ -106,20 +106,20 @@ class ExtractPolyAsites4Bulk:
 		CAPPED_BED_FILELIST = glob.glob(self.outDir + "*.capped.bed")
 		CAPPED_BED_FILELIST_STRING = ' '.join(CAPPED_BED_FILELIST)
 		cmd = "cat " + CAPPED_BED_FILELIST_STRING + " > " + self.CONCATENATED_SOFTCLIPPED_BED_FILE
-		print(cmd)
+		# print(cmd)
 		os.system(cmd)
 		BedTool(self.CONCATENATED_SOFTCLIPPED_BED_FILE).saveas(self.outDir + self.outPrefix + ".concatenated.softclipped_beforeCPASBERTFiltering.bed")
 
 		#Remove duplicate BED entries
 		TMP_BED_FILELOC = self.outDir + self.outPrefix + ".tmp.bed"
-		cmd = "rm " + TMP_BED_FILELOC
-		print(cmd)
+		cmd = "rm -f " + TMP_BED_FILELOC
+		# print(cmd)
 		os.system(cmd)
 		cmd = "awk \'!x[$0]++\' " + self.CONCATENATED_SOFTCLIPPED_BED_FILE + " > " + TMP_BED_FILELOC
-		print(cmd)
+		# print(cmd)
 		os.system(cmd)
 		cmd = "mv " + TMP_BED_FILELOC + " " + self.CONCATENATED_SOFTCLIPPED_BED_FILE
-		print(cmd)
+		# print(cmd)
 		os.system(cmd)
 		BedTool(self.CONCATENATED_SOFTCLIPPED_BED_FILE).saveas(self.outDir + self.outPrefix + ".concatenated.softclipped_beforeCPASBERTFilteringAndAfterDeDup.bed")
 
@@ -137,7 +137,7 @@ class ExtractPolyAsites4Bulk:
 		APRIORI_DF.to_csv(modifiedAPrioriFileLoc, sep='\t', index=False, header=None)
 
 		cmd = "cat " + modifiedAPrioriFileLoc + " " + self.CONCATENATED_SOFTCLIPPED_BED_FILE + " > " + self.CPAS_BED_FILE
-		print(cmd)
+		# print(cmd)
 		os.system(cmd)
 
 	def _performSoftClippedAssistedFiltering(self):
@@ -151,10 +151,10 @@ class ExtractPolyAsites4Bulk:
 		
 		#Remove duplicate BED entries
 		cmd = "awk \'!x[$0]++\' " + self.CPAS_BED_FILE + " > " + TMP_BED_FILELOC
-		print(cmd)
+		# print(cmd)
 		os.system(cmd)
 		cmd = "mv " + TMP_BED_FILELOC + " " + self.CPAS_BED_FILE
-		print(cmd)
+		# print(cmd)
 		os.system(cmd)
 		
 		#Import BED file as a BedTool
@@ -174,8 +174,8 @@ class ExtractPolyAsites4Bulk:
 		for BAM_FILE in self.conditionBAMList:
 			CAPPED_BED_FILE = self.outDir + self.outPrefix + os.path.basename(BAM_FILE).replace(".bam", ".capped.bed")
 
-			cmd = "rm " + TMP_BED_FILELOC
-			print(cmd)
+			cmd = "rm -f " + TMP_BED_FILELOC
+			# print(cmd)
 			os.system(cmd)
 
 			cappedBEDObject = BedTool(CAPPED_BED_FILE)
@@ -207,10 +207,10 @@ class ExtractPolyAsites4Bulk:
 			df.to_csv(CAPPED_COUNTS_FILE, sep = "\t", index = None)
 
 			cmd = "awk \'!x[$0]++\' " + CAPPED_COUNTS_FILE + " > " + TMP_BED_FILELOC
-			print(cmd)
+			# print(cmd)
 			os.system(cmd)
 			cmd = "mv " + TMP_BED_FILELOC + " " + CAPPED_COUNTS_FILE
-			print(cmd)
+			# print(cmd)
 			os.system(cmd)
 
 		cappedCountsFileMergedDataframe = pd.read_csv(cappedCountsFileList[0], sep = "\t")
@@ -269,13 +269,13 @@ class ExtractPolyAsites4Bulk:
 
 		#Slop the BED file by a user-determined distance on both ends
 		cmd = "samtools faidx " + self.FASTA
-		print(cmd)
+		# print(cmd)
 		os.system(cmd)
 
 		FASTA_INDEX = self.FASTA.replace(".fa", ".fa.fai")
 		CHROM_SIZES = self.outDir + self.outPrefix + "chrom.sizes"
 		cmd = "cut -f 1,2 " + FASTA_INDEX + " > " + CHROM_SIZES
-		print(cmd)
+		# print(cmd)
 		os.system(cmd)
 
 		BedTool(self.CPAS_BED_FILE).slop(b = self.slopDistanceParameter, g = CHROM_SIZES).sort().saveas(self.CPAS_BED_FILE)
@@ -523,7 +523,7 @@ class ExtractPolyAsites4Bulk:
 		# Otherwise, continue using filtered soft-clipped BED File (with modified file name)
 		else:
 			cmd = "cat " + self.CONCATENATED_SOFTCLIPPED_BED_FILE + " > " + self.CPAS_BED_FILE
-			print(cmd)
+			# print(cmd)
 			os.system(cmd)
 			BedTool(self.CPAS_BED_FILE).saveas(self.outDir + self.outPrefix + ".concatenated.softclipped_AfterNoAprioriAnnotations.bed")
 
@@ -620,7 +620,7 @@ class ExtractPolyAsites4Bulk:
 		APRIORI_DF.to_csv(modifiedAPrioriFileLoc, sep='\t', index=False, header=None)
 
 		cmd = "cat " + modifiedAPrioriFileLoc + " " + self.CONCATENATED_CAPPED_BED_FILE + " > " + self.FINAL_SOFTCLIPPED_BED_FILE
-		print(cmd)
+		# print(cmd)
 		os.system(cmd)
 
 		# self._clusterAndSortBED(inputBED = CONCATENATED_APRIORI_SOFTCLIPPED_BED_FILE)
@@ -651,7 +651,7 @@ class ExtractPolyAsites4Bulk:
 		
 		CLUSTERED_BED_FILE = self.outDir + self.outPrefix + ".clustered.bed"
 		cmd = "bedtools cluster -s -d " + self.clusterParameter + " -i " + inputBED + " > " + CLUSTERED_BED_FILE
-		print(cmd)
+		# print(cmd)
 		os.system(cmd)
 
 		df = pd.read_csv(CLUSTERED_BED_FILE, sep = "\t", header = None, names = ["Chr", "Start", "End", "Feature", "Feature2", "Strand", "Cluster"])
