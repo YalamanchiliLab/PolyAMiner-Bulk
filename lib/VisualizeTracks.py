@@ -89,7 +89,7 @@ class VisualizeTracks:
 					self.condition2SamplesBW_REVERSE.append(file)
 
 		for file in self.condition1SamplesBAM:
-			BASENAME = os.path.basename(file).replace(".bam",".bw")
+			BASENAME = os.path.basename(file).replace(".bam","pseudoPAC_.bw")
 			BASENAME_FORWARD = os.path.basename(file).replace(".bam","pseudoPAC_forward_.bw")
 			BASENAME_REVERSE = os.path.basename(file).replace(".bam","pseudoPAC_reverse_.bw")
 			
@@ -104,7 +104,7 @@ class VisualizeTracks:
 					self.condition1SamplesBW_PseudoPAC_REVERSE.append(file)
 
 		for file in self.condition2SamplesBAM:
-			BASENAME = os.path.basename(file).replace(".bam",".bw")
+			BASENAME = os.path.basename(file).replace(".bam","pseudoPAC_.bw")
 			BASENAME_FORWARD = os.path.basename(file).replace(".bam","pseudoPAC_forward_.bw")
 			BASENAME_REVERSE = os.path.basename(file).replace(".bam","pseudoPAC_reverse_.bw")
 
