@@ -493,7 +493,10 @@ def main():
 	# CPASBERT1.generateAttentionHeatmap(PosLabeledSequenceBedLoc, "PosSequence", cmapPalette = "YlGnBu")
 	# CPASBERT1.trainModel()
 
-	cmd = "python3 /mnt/belinda_local/venkata/data/venkata/DNABERT/motif/find_motifs.py  --min_len 6 --window_size 6  --align_all_ties  --save_file_dir /mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori --predict_dir /mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori  --data_dir /mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori --verbose --min_n_motif 3"
+	# CPASBERT1.DATA_PATH = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori/NegativeControl"
+	# CPASBERT1.PREDICTION_PATH = "/mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori/NegativeControl"
+	# CPASBERT1._predict_CPAS_Probabilty()
+	cmd = "python3 /mnt/belinda_local/venkata/data/venkata/DNABERT/motif/find_motifs.py  --min_len 6 --window_size 6  --pval_cutoff 1 --align_all_ties  --save_file_dir /mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori/NegativeControl --predict_dir /mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori/NegativeControl  --data_dir /mnt/belinda_local/venkata/data/PolyAMiner-Bulk/TestFiles_Human_APriori/NegativeControl --verbose --min_n_motif 3"
 	print(cmd)
 	os.system(cmd)
 

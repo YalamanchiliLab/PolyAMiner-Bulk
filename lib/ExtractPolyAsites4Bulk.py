@@ -178,6 +178,11 @@ class ExtractPolyAsites4Bulk:
 			# print(cmd)
 			os.system(cmd)
 
+			df = pd.read_csv(CAPPED_BED_FILE, sep = "\t", header = None)
+			df = df[df[1] != -1]
+			df = df[df[2] != -1]
+			df.to_csv(CAPPED_BED_FILE, sep = "\t", header = None, index = None)
+
 			cappedBEDObject = BedTool(CAPPED_BED_FILE)
 			
 			tmpBEDObject = clusteredBEDObject.intersect(cappedBEDObject, c = True, s = True, a = clusteredBEDObject, b = cappedBEDObject, output = TMP_BED_FILELOC)
