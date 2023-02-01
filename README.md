@@ -91,18 +91,28 @@ test again
 
 #### Base Parameters
 -mode = Run mode options: \'bam\' to start from mapped data, \'fastq\' to start from raw data' (string)
+
 -index = Reference genome bowtie2 index. NOTE: Valid for -mode fastq ONLY! (string)
+
 -d = Base directory of input fastq files. NOTE: Valid for -mode fastq ONLY! (string)
+
 -o = Output directory; default = 'PolyAminer_OUT' (string)
+
 -c1 = Comma-separated list of condition1 files. Full path for BAMs (index files are also expected) or just file names for fastq (string)
+
 -c2 = Comma-separated list of condition2 files. Full path for BAMs (index files are also expected) or Just file names for fastq (string)
+
 -s = Strand information. Use 0 for un-stranded, 1 for fwd-stranded, and 2 for rev-stranded (integer)
 
 #### Required Ref. Files
 -fasta = Reference fasta file
+
 -gtf = Reference gtf file
+
 -pa =PolyA annotations file standard 6 column bed format (string)
+
 -apriori_annotations = Enable pre-loading of a priori PolyASite 2.0 and PolyADB 3.0 annotations (boolean toggle)
+
 !Note: In general, between these -pa and -apriori_annotations options, use -apriori_annotations.
 
 #### Tuning
