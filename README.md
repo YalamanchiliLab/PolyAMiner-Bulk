@@ -14,7 +14,7 @@ In this package, we provide the following resources:
 
 If you have used PolyAMiner-Bulk in your research, please kindly cite the following publication:
 
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 
 ## Step 1: Setup the compute environment
@@ -107,48 +107,6 @@ test again
 
 #### Tuning
 -paired = Enable paired analyses where sample files are considered paired (i.e., pre-treatment vs post-treatment) for beta-binomial statistical test (boolean toggle)
-
-### Cleaning
-
-#### Optional Parameters
-optional.add_argument('-ignore',help=' Comma-separated list of regions to igonore from APA analysis UTR5, Introns, CDS, UTR3', nargs='+',type=str,default='ZZZZZZ')
-optional.add_argument('-apaBlock',help='Window size for annotated polyA sites',type=int, default=30)
-optional.add_argument('-mdapa',help='Cluster distance for annotated polyA sites: Merge polyA sites with in this distance. ',type=int, default=0)
-optional.add_argument('-md',help='Cluster distance for de-novo polyA sites: Merge polyA sites with in this distance',type=int, default=0)
-optional.add_argument('-anchor',help='Overlap in "bp" for mapping de-novo polyA sites to annotated polyA sites ',type=int, default=1)
-optional.add_argument('-softclippedNumReads',help='(Param 1 of 2 for Softclipped-Assisted Filter) Minimum # of required softclipped reads',type=int, default=0)
-optional.add_argument('-softclippedNumSamples',help='(Param 2 of 2 for Softclipped-Assisted Filter) Minimum # of samples that need to meet softclippedNumReads requirement',type=int, default=0)
-optional.add_argument('-slopDistanceParameter',help='Slop distance parameter',type=int, default = 25)
-optional.add_argument('-clusterParameter',help='Cluster Parameter',type=int, default = 30)
-
-#### Additional analysis 
-optional.add_argument('-cluster_onGenes',help='Cluster samples based on gene counts - all polyA sites / 3utr polyA sites',choices=['all','3utr','none'],type=str,default='none')
-optional.add_argument('-cluster_onPAsites',help='Cluster samples based on gene counts - all polyA sites / 3utr polyA sites',choices=['all','3utr','none'],type=str,default='none')
-optional.add_argument('-DEG',help='Perform differential gene expression analysis - all polyA sites / 3utr polyA sites',choices=['all','3utr','none'],type=str,default='none')
-optional.add_argument('-pa_usage',help='Perform differential polyA site usage analysis - all polyA sites / filtered polyA sites',choices=['all','filtered','none'],type=str,default='none')
-
-#### Tuning 
-optional.add_argument('-expNovel',help='Explore novel APA sites 0: only annotated sites 1: de-novo',choices=[1,0],type=int,default=0)
-optional.add_argument('-novel_d',help='Distance from annotated TES to map novel pA sites',type=int, default=1000)
-optional.add_argument('-p',help='No. of processors to use',type=int,default=4)
-optional.add_argument('-ip_d',help='Downstream internal priming window',type=int, default=50)
-optional.add_argument('-ip_u',help='Upstream internal priming window',type=int, default=50)
-optional.add_argument('-a',help='Internal priming polyA fraction',type=float, default=0.65)
-optional.add_argument('-pa_p',help='pOverA filter: P ',type=float, default=0.6)
-optional.add_argument('-pa_a',help='pOverA filter: A ',type=int, default=5)
-optional.add_argument('-pa_m',help='pOverA filter: M ',type=int, default=2)
-optional.add_argument('-gene_min',help='Min counts per Gene',type=int, default=10)
-optional.add_argument('-apa_min',help='Min. proportion per APA',type=float, default=0.05)
-optional.add_argument('-batchCorrection',help='Comma-seperated list of batch membership for ComBat-seq correction',type=str, default='ZZZZZZ')
-optional.add_argument('-modelOrganism',help='Model organism for CPAS-BERT Model',type=str, default="human")
-optional.add_argument('-visualizeTopNum',help='Generate read density visualization plots for the top N genes, where N is an integer specified by the user ',type=int, default=0)
-optional.add_argument('-visualizeCondition1Name',help='Name of Condition 1 when generating read density visualization plots',type=str, default="Control")
-optional.add_argument('-visualizeCondition2Name',help='Name of Condition 2 when generating read density visualization plots',type=str, default="Treatment")
-optional.add_argument('-visualizeCondition1NameHeatmap',help='Name of Condition 2 when generating read density visualization plots',type=str, default="CR")
-optional.add_argument('-visualizeCondition2NameHeatmap',help='Name of Condition 2 when generating read density visualization plots',type=str, default="TR")
-optional.add_argument('-outPrefix',help='Output file/s prefix', default="PolyAminer_Out",type=str)
-
-## Step 4 (Optional): Run Test Script
 
 ## FAQ
 
