@@ -35,6 +35,7 @@ conda install pytorch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cudatoolkit
 
 git clone https://github.com/venkatajonnakuti/PolyAMiner-Bulk
 cd PolyAMiner-Bulk/lib/DNABERT
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 python3 -m pip install --editable .
 Rscript installPkgs.R
 
