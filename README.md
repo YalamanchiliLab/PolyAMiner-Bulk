@@ -56,29 +56,9 @@ conda install -c anaconda seaborn
 sudo apt-get install gfortran
 pip install deeptools
 pip install pygenometracks==3.6
-
-<!-- 
-conda install pandas
-conda install statsmodels
-pip3 install -U scikit-learn
-pip install pysam
-conda install -c bioconda pyfasta
-conda install -c bioconda gtfparse
-pip install tokenizers
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-sudo apt install build-essential
-pip install transformers==2.5.0
-pip install tensorboard
-conda install -c anaconda seaborn 
-conda install -c bioconda pybedtools
-conda install -c bioconda pybigwig
-conda install -c bioconda subread
-conda install -c bioconda samtools
-conda install -c conda-forge r-kernsmooth
-BiocManager::install("sva")
-test again
- -->
 ```
+
+Also, install FeatureCounts v2.0.0! (Please do NOT install other versions of FeatureCounts!)
 
 ## Step 2: Download trained ML-models + ML-dependencies + necessary reference files
 

@@ -1,11 +1,14 @@
-# Run mode: from preprocessed bam files on: Thu 11/24/2022 at: 01:30:22 
-# Arguments checked on: Thu 11/24/2022 at: 01:30:22 
-# Completed extracting soft-clipped (Poly(A)-Capped) polyadenylation sites on: Thu 11/24/2022 at: 01:34:36 
-# Completed abstracting APA proportions on: Thu 11/24/2022 at: 01:41:26 
-# Completed DEG (Overall and Core APA Factor) Analysis on: Thu 11/24/2022 at: 01:43:35 
-# Completed computing PolyA Index on: Thu 11/24/2022 at: 01:43:35 
-# Using BB model on: Thu 11/24/2022 at: 01:43:35 
-# Completed beta-binomial testing on: Thu 11/24/2022 at: 01:43:36 
-# PolyA-miner results summary on: Thu 11/24/2022 at: 01:43:37 
-# Finished PolyA-miner APA analysis on: Thu 11/24/2022 at: 01:43:37 
-# Finished PolyAMiner on: Thu 11/24/2022 at: 01:43:38 
+# Finished feature counts: Mon 03/27/2023 at: 01:13:00 
+# Finished making data matrix : Mon 03/27/2023 at: 01:13:02 
+# Finished filtering low prop APA sites : Mon 03/27/2023 at: 01:19:47 
+# Finished PoverA filtering : Mon 03/27/2023 at: 01:19:47 
+# Finished filtering out low exp genes : Mon 03/27/2023 at: 01:19:47 
+# Finished BB test on APAsites: Mon 03/27/2023 at: 01:21:51 
+# Finished Gene level stats: Mon 03/27/2023 at: 01:21:52 
+# Significant PolyA changes:	9
+# Significant shortening changes:	4
+# Significant lengthening changes:	5
+sting on: Mon 03/27/2023 at: 01:21:52 
+# PolyA-miner results summary on: Mon 03/27/2023 at: 01:21:52 
+# Finished PolyA-miner APA analysis on: Mon 03/27/2023 at: 01:21:52 
+# Finished PolyAMiner on: Mon 03/27/2023 at: 01:21:53 

@@ -1,3 +1,4 @@
+#Bulk
 import os, sys, glob
 import argparse
 import pandas as pd
@@ -319,7 +320,7 @@ class VisualizeTracks:
 				self.condition2SamplesBW_PseudoPAC_FORWARD.append(OUTPUT_FORWARD)
 				self.condition2SamplesBW_PseudoPAC_REVERSE.append(OUTPUT_REVERSE)
 
-	def _makeConfigFile(self, strand, chromosome, start, end, pseudoPACFlag):
+	def _makeConfigFile(self, strand, chromosome, start, end, pseudoPACFlag, gene):
 		if self.strandedness == 2 or self.strandedness == 0:		
 			if (strand == "forward"):
 				if pseudoPACFlag:
@@ -515,8 +516,14 @@ class VisualizeTracks:
 		fw.write("[spacer]\n")
 		# fw.write("height = 2\n")
 
+		# subsetGTF = read_gtf(self.GTF)
+		# subsetGTF = subsetGTF[subsetGTF["gene_name"] == gene]
+		subsetGTFFileLoc = self.outDir + os.path.basename(self.GTF)[:-3] + gene + "_subset.gtf"
+		cmd = "grep -w " + gene + " " + self.GTF + " > " + subsetGTFFileLoc
+		os.system(cmd)
+
 		fw.write("[test gtf collapsed]\n")
-		fw.write("file = " + self.GTF + "\n")
+		fw.write("file = " + subsetGTFFileLoc + "\n")
 		fw.write("height = 3\n")
 		fw.write("merge_transcripts = true\n")
 		# fw.write("merge_overlapping_exons = true\n")
@@ -687,8 +694,8 @@ class VisualizeTracks:
 				print("Couldn't find polyACountMatrix file...skipping...")
 			
 			if (strand == "+"):
-				self._makeConfigFile(strand = "forward", chromosome = chromosome, start = start, end = end, pseudoPACFlag = False)
-				self._makeConfigFile(strand = "forward", chromosome = chromosome, start = start, end = end, pseudoPACFlag = True)
+				self._makeConfigFile(strand = "forward", chromosome = chromosome, start = start, end = end, pseudoPACFlag = False, gene = Gene)
+				self._makeConfigFile(strand = "forward", chromosome = chromosome, start = start, end = end, pseudoPACFlag = True, gene = Gene)
 				if (self.strandedness == 1):
 					cmd1 = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
 					cmd2 = "pyGenomeTracks --tracks " + self.CONFIG_PSEUDOPAC_FILEPATH_REVERSE + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + PSEUDOPAC_OUTPUT_FILEPATH
@@ -702,8 +709,8 @@ class VisualizeTracks:
 					cmd2 = "pyGenomeTracks --tracks " + self.CONFIG_PSEUDOPAC_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + PSEUDOPAC_OUTPUT_FILEPATH
 
 			elif (strand == "-"):
-				self._makeConfigFile(strand = "reverse", chromosome = chromosome, start = start, end = end, pseudoPACFlag = False)
-				self._makeConfigFile(strand = "reverse", chromosome = chromosome, start = start, end = end, pseudoPACFlag = True)
+				self._makeConfigFile(strand = "reverse", chromosome = chromosome, start = start, end = end, pseudoPACFlag = False, gene = Gene)
+				self._makeConfigFile(strand = "reverse", chromosome = chromosome, start = start, end = end, pseudoPACFlag = True, gene = Gene)
 				if (self.strandedness == 1):
 					cmd1 = "pyGenomeTracks --tracks " + self.CONFIG_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + OUTPUT_FILEPATH
 					cmd2 = "pyGenomeTracks --tracks " + self.CONFIG_PSEUDOPAC_FILEPATH_FORWARD + " --region " + region + " --dpi 150 --fontSize 14 --trackLabelFraction 0 --width 50 --outFileName " + PSEUDOPAC_OUTPUT_FILEPATH
