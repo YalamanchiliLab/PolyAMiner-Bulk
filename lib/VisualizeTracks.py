@@ -602,7 +602,7 @@ class VisualizeTracks:
 			Gene = row["Symbol"]
 			if str(Gene) == "nan":
 				Gene = row["Gene"]
-			self.APAHeatmap = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) + "_Heatmap.png"
+			self.APAHeatmap = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) + "_Heatmap.svg"
 			self.formattedCPAS_BED_FileLoc = self.outDir + self.outPrefix + str(Gene) + "_CPASdb.bed"
 			self.formattedLabeledCPAS_BED_FileLoc = self.outDir + self.outPrefix + str(Gene) + "_LabeledCPASdb.bed"
 
@@ -632,8 +632,8 @@ class VisualizeTracks:
 			CPAS_BED_DF.to_csv(self.formattedLabeledCPAS_BED_FileLoc, sep = "\t", header = None, index = False)
 			#Maybe slop CPAS BED by X coordinates on both sides???
 
-			OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) +".DAG_Track_WholeGeneView.png"
-			PSEUDOPAC_OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) +".PseudoPAC_DAG_Track_WholeGeneView.png"
+			OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) +".DAG_Track_WholeGeneView.svg"
+			PSEUDOPAC_OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) +".PseudoPAC_DAG_Track_WholeGeneView.svg"
 			chromosome = CPAS_BED_DF[0][0]
 			start = int(CPAS_BED_DF[1].min()) - 2000
 			end = int(CPAS_BED_DF[2].max()) + 2000
@@ -727,8 +727,8 @@ class VisualizeTracks:
 			os.system(cmd2)
 			
 			try:
-				OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) +".DAG_Track_3UTRView.png" 
-				PSEUDOPAC_OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) +".PseudoPAC_DAG_Track_3UTRView.png"
+				OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) +".DAG_Track_3UTRView.svg" 
+				PSEUDOPAC_OUTPUT_FILEPATH = self.outDir + self.outPrefix + str(printIndex+1) + "_" + str(Gene) +".PseudoPAC_DAG_Track_3UTRView.svg"
 				CPAS_BED_DF = CPAS_BED_DF[CPAS_BED_DF[3].str.contains("UTR3") | CPAS_BED_DF[3].str.contains("UN")]
 				start = int(CPAS_BED_DF[1].min()) - 2000
 				end = int(CPAS_BED_DF[2].max()) + 2000
