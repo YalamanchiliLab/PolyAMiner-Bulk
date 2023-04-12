@@ -80,6 +80,15 @@ def APA_counts(f):
 			n=oline.strip().split(": ")[1].split(" ")[0]
 			return(n)
 
+def remove_dup_columns(frame):
+	keep_names = set()
+	keep_icols = list()
+	for icol, name in enumerate(frame.columns):
+		if name not in keep_names:
+			keep_names.add(name)
+			keep_icols.append(icol)
+	return frame.iloc[:, keep_icols]
+
 def MakeMatrix(outDir, npc, fkey, PA_P, PA_A, M, controls, treated, mip, mge, mode,samples,logfile,pa_usage):
 	if os.path.isfile(outDir + fkey + '_denovoAPAsites.saf'):
 		saf=outDir + fkey + '_denovoAPAsites.saf'
@@ -190,6 +199,10 @@ def MakeMatrix(outDir, npc, fkey, PA_P, PA_A, M, controls, treated, mip, mge, mo
 		result.remove('0')
 	fdf = pd.DataFrame()
 	fdf=df[df['gene_id'].isin(result)] 
+	# fdf = fdf.loc[:, ~fdf.columns.duplicated()]
+
+	# fdf = remove_dup_columns(fdf)
+
 	
 	fdf.to_csv(outDir + fkey + '_APA.CountMatrix.GFil.PA.PR.txt', sep='\t', index=False)
 	localdate = time.strftime('%a %m/%d/%Y')
