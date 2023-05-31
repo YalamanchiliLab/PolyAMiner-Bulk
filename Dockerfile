@@ -83,7 +83,10 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
 	conda install python=3.9 pip && \
 	conda install -c bioconda subread && \
 	conda install -c bioconda samtools && \
-	conda install -c bioconda bedtools
+	conda install -c bioconda bedtools && \
+	conda install -c bioconda fastqc && \
+	conda install -c bioconda star=2.7.9a && \
+	conda install -c bioconda bowtie2
 
 ENTRYPOINT [ "/bin/bash", "-l", "-c" ]
 
@@ -122,6 +125,8 @@ RUN echo "\n" > /root/.bashrc \
 && echo -e "#! /bin/bash\n\n# script to activate the conda environment" > /root/.bashrc \
 && conda init bash \
 && echo -e "conda activate dnabert2\n" >> /root/.bashrc 
+
+RUN apt-get install -y pigz unzip
 
 SHELL ["/bin/bash", "-l", "-c"]
 ENV BASH_ENV /root/.bashrc

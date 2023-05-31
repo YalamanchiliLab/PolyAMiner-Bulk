@@ -15,6 +15,7 @@ from ExtractPolyAsites4Bulk import ExtractPolyAsites4Bulk
 from PolyASafety import PolyASafety
 from SoftclippedAssistedFiltering import SoftclippedAssistedFiltering
 from VisualizeTracks import VisualizeTracks
+import glob
 
 
 def check_files (checkfiles,logfile):
@@ -42,12 +43,12 @@ def main():
 	required = parser.add_argument_group('Required arguments')
 	parser._action_groups.append(optional)
 
-	required.add_argument('-mode',help='Run mode options: \'bam\' to start from mapped data, \'fastq\' to start from raw data',choices=['bam','fastq'],default='bam',required='True',type=str)
+	optional.add_argument('-mode',help='Run mode options: \'bam\' to start from mapped data, \'fastq\' to start from raw data',choices=['bam','fastq'],default='bam',type=str)
 	optional.add_argument('-d',help='Base directory of input fastq files. Valid for -mode fastq ',type=str)
 	optional.add_argument('-o',help='Output directory',type=str,default='PolyAminer_OUT')
 	required.add_argument('-c1',help='Comma-separated list of condition1 files. Full path for BAMs (index files are also expected) or Just file names for fastq', nargs='+',required='True',type=str)
 	required.add_argument('-c2',help='Comma-separated list of condition2 files. Full path for BAMs (index files are also expected) or Just file names for fastq ', nargs='+',required='True',type=str)
-	parser.add_argument('-s',help='Strand information 0: un-stranded 1: fwd-strand 2:rev-strand. ',choices=[0,1,2],type=int,default=0)
+	parser.add_argument('-s',help='Strand information 0: un-stranded 1: fwd-strand 2:rev-strand. ',choices=[0,1,2],type=int,default=2)
 	
 	# Ref. files
 	optional.add_argument('-index',help='Reference genome bowtie2 index. Valid for -mode fastq',type=str)
@@ -80,7 +81,7 @@ def main():
 	optional.add_argument('-pa_usage',help='Perform differential polyA site usage analysis - all polyA sites / filtered polyA sites',choices=['all','filtered','none'],type=str,default='none')
 
 	# Tuning #
-	optional.add_argument('-expNovel',help='Explore novel APA sites 0: only annotated sites 1: de-novo',choices=[1,0],type=int,default=0)
+	optional.add_argument('-expNovel',help='Explore novel APA sites 0: only annotated sites 1: de-novo',choices=[1,0],type=int,default=1)
 	optional.add_argument('-novel_d',help='Distance from annotated TES to map novel pA sites',type=int, default=1000)
 	optional.add_argument('-p',help='No. of processors to use',type=int,default=4)
 	optional.add_argument('-ip_d',help='Downstream internal priming window',type=int, default=50)
@@ -111,6 +112,7 @@ def main():
 	args_dict = vars(args)
 	args.o=args.o.rstrip("/")+"/"
 	args.t = "BB"
+	args.apriori_annotations = True 
 
 	############################################################################################################
 	# Module 0: Safety Checks -- Check output directory, start logging, check dependencies, check input files  #
@@ -200,11 +202,42 @@ def main():
 			nc = len(controls)
 			nt = len(treated)
 			baseDir =args.d; outDir=args.o; np=args.p; ref_genome=args.index; fkey=args.outPrefix;
-			for s in samples:
-				DataProcessing.process_rawfastq(args.d,args.o, s, args.umi,args.p)
-				logEvent(logfile = logfile, event = 'Finished fastp/umi')
-				DataProcessing.mapping_bowtie2(args.o, s, args.p, args.index,args.umi)
-				logEvent(logfile = logfile, event = 'Finished mapping')
+			# DataProcessing.process_rawfastq(args.d,args.o, s, args.umi,args.p)
+			paired_fastqc_scriptLoc = os.path.dirname(__file__) + "/lib/Paired_FastQC.py"
+			cmd = "python3 " + paired_fastqc_scriptLoc + " " + args.d + " " + args.d
+			# print(cmd)
+			logEvent(logfile = logfile, event = 'Started fastqc to infer read length')
+			os.system(cmd)
+			
+			fastqc_resultsZipFile = args.d + "/**/*R1_fastqc.zip"
+			print(fastqc_resultsZipFile)
+			for f in glob.glob(fastqc_resultsZipFile, recursive=True):
+				cmd = "unzip " + f
+				print(cmd)
+				os.system(cmd)
+
+			fastqc_resultsTextFile = args.d + "/**/*fastqc_data.txt"
+			STARLengthParameter = "0"
+			for f in glob.glob(fastqc_resultsTextFile, recursive=True):
+				with open (f, "r") as myfile:
+					for line in myfile:
+						if "Sequence length" in line:
+							lis = list(line.split("\t"))
+							STARLengthParameter = lis[len(lis)-1]
+				print(STARLengthParameter)
+
+			logEvent(logfile = logfile, event = 'Finished fastqc to infer read length')
+
+			# logEvent(logfile = logfile, event = 'Started STAR mapping')
+			# paired_STAR_scriptLoc = os.path.dirname(__file__) + "/lib/Paired_STAR_stranded.py"
+			# args.d=args.d.rstrip("/")+"/"
+			# bamDirectory = args.d + "BAM/"
+			# cmd = "mkdir " + bamDirectory
+			# os.system(cmd)
+			# cmd = "python3 " + paired_STAR_scriptLoc + " " + args.d + " " + bamDirectory + " " 
+
+			# # DataProcessing.mapping_bowtie2(args.o, s, args.p, args.index,args.umi)
+			# logEvent(logfile = logfile, event = 'Finished STAR mapping')
 			logEvent(logfile = logfile, event = 'Completed data processing')
 			pass
 
@@ -242,25 +275,6 @@ def main():
 		else:
 			logEvent(logfile = logfile, event = "Error in extracting soft-clipped (Poly(A)-Capped) polyadenylation sites")
 			exit()
-	
-
-	###################################
-	# Module 3: Perform Softclipped Assisted Filtering if user specifies >0 values for both softclip_numReads and softclip_numSamples #
-	###################################
-
-	# if (args.softclippedNumReads > 0 and args.softclippedNumSamples > 0):
-	# 	SoftclippedAssistedFiltering1 = SoftclippedAssistedFiltering(outDir = args.o,
-	# 		outPrefix = args.outPrefix,
-	# 		con1BAMFiles = args.c1,
-	# 		con2BAMFiles = args.c2,
-	# 		softclip_numReads = args.softclippedNumReads,
-	# 		softclip_numSamples = args.softclippedNumSamples,
-	# 		clusterParameter = args.clusterParameter,
-	# 		fasta = args.fasta
-	# 		)
-
-		# SoftclippedAssistedFiltering1.performSoftclippedAssistedFiltering()
-		# logEvent(logfile = logfile, event = 'Completed softclipped-assisted filtering')
 
 	###################################
 	# Module 3: Make APA count matrix #
