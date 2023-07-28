@@ -69,6 +69,7 @@ class CPASBERT:
 		# df = df[df["Chr"].str.contains("chrGL")==False]
 		df_ChromSizes = pd.read_csv(CHROM_SIZES, sep = "\t", header = None)
 		df = df[df['Chr'].isin(df_ChromSizes[0])]
+		df = df[(df != -1).all(axis=1)]
 		df.to_csv(DENOVOAPASITES_MIDPOINT_BED, sep="\t", header=False, index=False)
 
 		cmd = "bedtools slop -i " + DENOVOAPASITES_MIDPOINT_BED + " -g " + CHROM_SIZES + " -b 50 > " + self.DENOVOAPASITES_SEQUENCE_ATLAS
